@@ -1,0 +1,302 @@
+<div id="Material" class="container-fluid Material">
+  <div class="pt-5">
+    <div style="text-align: center;"><img *ngIf="!loadingDone" src="assets/icons/loadingIcon.svg" alt="Loading"></div>
+    <div *ngIf="loadingDone" class="shadow bg-light p-3 outerMaterial">
+      <button type="button" class="btn is-primary form-control sizeBtnMat pdfButton" id="size-btn" (click)="generatePdf()"
+              *ngIf="canGeneratePDF">Generate PDF Label
+      </button>
+      <select id="options" (change)="onSelect($event.target.value)" class="custom-select selectBox m-2" *ngIf="canGeneratePDF">
+        <option value="a4" default>A4</option>
+        <option value="a5">A5</option>
+        <option value="a6">A6</option>
+      </select>
+      <button id="duplicate" type="button" class="btn btn-primary form-control ml-2"
+              routerLink="/materials/edit/{{ material?.getSequenceNumber() }}"
+              [queryParams]="{action: 'duplicate'}"
+              *ngIf="canDuplicate">Duplicate Label
+      </button>
+
+      <button id="delete" type="button" class="btn btn-primary form-control float-right ml-2" *ngIf="canEdit"
+              (click)="onDelete(material?.getSequenceNumber())" matTooltip="Delete">
+        <img height="22" src="assets/icons/deleteWhite.svg">
+      </button>
+
+      <button id="edit" type="button" class="btn btn-primary form-control float-right ml-2" *ngIf="canEdit"
+              routerLink="/materials/edit/{{ material?.getSequenceNumber() }}" matTooltip="Edit">
+        <img height="20" src="assets/icons/pencil.svg">
+      </button>
+
+      <button id="report" type="button" class="btn btn-primary form-control float-right" *ngIf="canReport"
+              data-toggle="modal" data-target="#reportModal" matTooltip="Report">
+        <img height="20" src="assets/icons/outlined_flag-24px.svg">
+      </button>
+
+      <!-- Report Modal -->
+      <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel"
+           aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="h2">Report {{material?.getName()}}
+                by {{ user?.getFirstname() + " " + user?.getLastname()}}</h2>
+            </div>
+            <div class="modal-body">
+              <input name="reportMessage" [(ngModel)]="reportMessage" type="text" class="form-control report"
+                     id="reportMessage" placeholder="Report Message" required>
+            </div>
+            <div class="modal-footer">
+              <button id="cancelReport" type="button" class="btn btn-secondary form-control" data-dismiss="modal">Cancel</button>
+              <button id="submitReport" type="submit" (click)="onReport()" class="btn btn-primary form-control" data-dismiss="modal">
+                Report
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div id="qrCode" class="col-md-4 mt-2">
+          <img src="{{this.logoPath}}" style="width: 10rem;"
+               [ngClass]="{'is-hidden': material?.getQRCodeURL() }"/>
+          <ngx-qrcode
+            [ngClass]="{'is-hidden': !material?.getQRCodeURL() }"
+            [elementType]="elementType"
+            [errorCorrectionLevel]="correctionLevel"
+            [value]="material?.getQRCodeURL()"
+            cssClass="bshadow"></ngx-qrcode>
+
+          <label class="label m-2">
+            {{ material?.getQRCodeURL() }}
+          </label>
+        </div>
+
+
+        <div class="col-md-4 text-center">
+          <h1 id="materialName" class="name text-uppercase">{{ material?.getName() }}</h1>
+
+          <h3 id="materialType" class="type">{{ materialType[material?.getType()] }}</h3>
+          <h3 id="materialNumber" class="Snumber">
+
+            #{{ material?.getFormattedSequenceNumber() }}
+
+             </h3>
+
+          <div id="tagsContainer" class="tags-container">
+            <span class="badge is-primary badge-pill ml-1 tag" *ngFor="let tag of material?.getTags()">
+              {{ materialTag[tag.name] }}
+            </span>
+          </div>
+        </div>
+
+        <div id="logo" class="col-md-4">
+          <img class="rounded float-right" style="width: 10rem;" alt="" src="{{this.logoPath}}"/>
+        </div>
+      </div>
+
+      <hr/>
+
+      <div id="ingredients" class="row mt-4">
+        <div class="col-md-6">
+          <h1 class="title">INGREDIENTS:</h1>
+          <div class="ingredient-container mt-3">
+            <ul>
+              <li *ngFor="let mi of ingredientArray" class="mb-1 info">
+                {{ mi.ingredient.name }}-{{ mi.ingredient.type }} {{ mi.amount }} gr
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div id="makingProcedure" class="col-md-6">
+          <h1 class="title">MAKING PROCEDURE:</h1>
+          <div class="procedure-container mt-2">
+            <ul>
+              <li *ngFor="let stepItem of steps" class="mb-1 info word-break">
+                {{ stepItem }}
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div id="reference" class="row mt-4">
+        <div class="col-md-6">
+          <h1 class="title">REFERENCE & CHANGES: </h1>
+          <p class="info" *ngIf="material?.getParentId()">
+            {{parentMaterial?.getName() }} by {{ parentAuthor?.getFirstname() + " " + parentAuthor?.getLastname() }}
+          </p>
+
+          <p class="info" *ngIf="!material?.getParentId()">
+            {{ material?.getReference() }}
+          </p>
+
+          <p class="info word-break">
+            Changes made: {{material?.getChanges() }}
+          </p>
+        </div>
+      </div>
+
+
+
+      <hr/>
+
+      <div id="creator" class="row">
+        <div *ngIf="loadingDone" class="col-md-12 text-center">
+          <p>Maker: {{ user?.getFirstname() + " " + user?.getLastname()}}
+            - {{material?.getCreationDate() | date:'dd-MM-yyyy'}} <b style="font-weight: normal" *ngIf="isLoggedIn()">
+              - {{ user?.getEmail() }}</b></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="media" class="shadow bg-light p-3 outerMaterial mt-5" *ngIf="material?.getOverviewURL() || material?.getCloseUpURL()">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <h1 class="h1">Label Media: </h1>
+          <div class="img-overview-container" *ngIf="material?.getOverviewURL()">
+            <h2 class="h2">Overview:</h2>
+            <img src="data:image/png;base64,{{ material?.getOverviewURL() }}" class="img-fluid"
+                 alt="Uploaded media from the user" width="50%">
+          </div>
+
+          <div class="img-close-up-container" *ngIf="material?.getCloseUpURL()">
+            <h2 class="h2">Close up:</h2>
+            <img src="data:image/png;base64,{{ material?.getCloseUpURL() }}" class="img-fluid"
+                 alt="Uploaded media from the user" width="50%">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PDF Label Design -->
+
+<div class="sammie" id="pdfLabel">
+
+  <!-- Label -->
+
+  <div class="container-fluid MaterialPDF">
+
+    <div class="pt-5">
+      <div class="shadow bg-light p-3 outerMaterialPDF">
+
+        <!-- Top Title (flipped) -->
+
+        <div class="text-center flippedTitle">
+          <h1 class="text-uppercase name">{{ material?.getName() }}</h1>
+
+          <h3 class="type">{{ materialType[material?.getType()] }}</h3>
+          <h3 class="Snumber">
+            #{{ material?.getFormattedSequenceNumber() }}</h3>
+        </div>
+
+        <!-- border stipped -->
+        <div class="borderTop">
+        </div>
+        <div class="borderCenter">
+        </div>
+
+        <!-- PDF Body -->
+
+        <div class="pdfText">
+
+          <div class="row">
+            <div class="col-md-4">
+              <img src="{{this.logoPath}}" style="width: 10rem;"
+                   [ngClass]="{'is-hidden': material?.getQRCodeURL() }"/>
+              <ngx-qrcode
+                [ngClass]="{'is-hidden': !material?.getQRCodeURL() }"
+                [elementType]="elementType"
+                [errorCorrectionLevel]="correctionLevel"
+                [value]="material?.getQRCodeURL()"
+                cssClass="bshadow"></ngx-qrcode>
+
+              <label class="label m-2">
+                {{ material?.getQRCodeURL() }}
+              </label>
+            </div>
+
+
+            <div class="col-md-4 text-center">
+              <h1 class="nameTitle text-uppercase">{{ material?.getName() }}</h1>
+
+              <h3 class="type">{{ materialType[material?.getType()] }}</h3>
+              <h3 class="Snumber">
+                #{{ material?.getFormattedSequenceNumber() }}</h3>
+
+              <div class="tags-container2 ">
+            <span class="tag ml-1" *ngFor="let tag of material?.getTags()">
+             | {{ materialTag[tag.name] }}
+            </span>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <img class="rounded float-right" style="width: 10rem;" alt="" src="{{this.logoPath}}"/>
+            </div>
+          </div>
+
+          <hr/>
+
+          <div class="pdfInfo">
+          <div class="stepsIngredients">
+            <div class="IngredientsDiv">
+              <h1 class="title">INGREDIENTS:</h1>
+              <div class="ingredient-container mt-3">
+                <ul>
+                  <li *ngFor="let mi of ingredientArray" class="mb-1 info ingredient">
+                    {{ mi.ingredient.name }}-{{ mi.ingredient.type }} {{ mi.amount }} gr
+                  </li>
+                </ul>
+              </div>
+
+
+              <div class="changes">
+                <h1 class="title">REFERENCE & CHANGES: </h1>
+                <p class="info" *ngIf="material?.getParentId()">
+                  {{parentMaterial?.getName() }} by {{ parentAuthor?.getFirstname() + " " + parentAuthor?.getLastname() }}
+                </p>
+                <div class="row">
+                  <p class="info changeWho" *ngIf="!material?.getParentId()">
+                    {{ material?.getReference() }}
+                  </p>
+
+                  <p class="info word-break changesTekst">
+                    {{material?.getChanges() }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="ProcedureDiv">
+              <h1 class="title">MAKING PROCEDURE:</h1>
+              <div class="procedure-container mt-2">
+                <ul>
+                  <li *ngFor="let stepItem of steps" class="mb-1 info procedure word-break">
+                    {{ stepItem }}
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+        </div>
+
+      </div>
+      <div class="row">
+        <div class="col-md-12 text-center makerr">
+          <hr class="marker markerBottom"/>
+          <p class="maker">Maker: {{ user?.getFirstname() + " " + user?.getLastname()}}
+            - {{material?.getCreationDate() | date:'dd-MM-yyyy'}} - {{ user?.getEmail() }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
