@@ -14,7 +14,6 @@ import {Report} from '../../models/report';
 import {ReportService} from '../../services/report.service';
 import {MaterialIngredient} from '../../models/material-ingredient';
 import {Tag} from '../../models/tag';
-import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
 import {AppConfigService} from '../../services/app-config.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
