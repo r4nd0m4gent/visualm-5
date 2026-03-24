@@ -100,7 +100,7 @@
           <div class="ingredient-container mt-3">
             <ul>
               <li *ngFor="let mi of ingredientArray" class="mb-1 info">
-                {{ mi.ingredient.name }}-{{ mi.ingredient.type }} {{ mi.amount }} gr
+                {{ mi.ingredient.name }} {{ mi.amount }} {{ mi.ingredient.type || 'gr' }}
               </li>
             </ul>
           </div>
@@ -248,7 +248,7 @@
               <div class="ingredient-container mt-3">
                 <ul>
                   <li *ngFor="let mi of ingredientArray" class="mb-1 info ingredient">
-                    {{ mi.ingredient.name }}-{{ mi.ingredient.type }} {{ mi.amount }} gr
+                    {{ mi.ingredient.name }} {{ mi.amount }} {{ mi.ingredient.type || 'gr' }}
                   </li>
                 </ul>
               </div>

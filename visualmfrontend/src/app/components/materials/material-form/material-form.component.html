@@ -131,17 +131,17 @@
               </div>
 
               <div class="col-md-12 mt-2 col-sm-3 col-lg-3">
-                <input class="form-control rounded-pill" formControlName="ingredientType" type="text" value="" maxlength="20"
-                       placeholder="Type"
-                       [ngClass]="{'is-invalid': !materialForm.get('ingredientType').valid && materialForm.get('ingredientType').touched,
-                          'is-valid': materialForm.get('ingredientType').valid && materialForm.get('ingredientType').touched}"/>
-              </div>
-
-              <div class="col-md-12 mt-2 col-sm-3 col-lg-3">
                 <input class="form-control rounded-pill" formControlName="amount" type="number"
-                       placeholder="Grams" (keydown.enter)="addIngredient()"
+                       placeholder="Amount" (keydown.enter)="addIngredient()"
                        [ngClass]="{'is-invalid': !materialForm.get('amount').valid && materialForm.get('amount').touched,
 			                  'is-valid': materialForm.get('amount').valid && materialForm.get('amount').touched}"/>
+              </div>
+
+              <div class="col-md-12 mt-2 col-sm-3 col-lg-2">
+                <select class="form-control rounded-pill" formControlName="ingredientUnit">
+                  <option value="gr">gr</option>
+                  <option value="ml">ml</option>
+                </select>
               </div>
 
               <div class="col-md-3 mt-2">
@@ -170,7 +170,7 @@
             <div class="ingredient-container mt-3">
               <ul>
                 <li *ngFor="let mi of materialIngredients" class="mb-1">
-                  {{ mi.getIngredient().getName() }}-{{ mi.getIngredient().getType() }} {{ mi.getAmount() }} gr
+                  {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() || 'gr' }}
                   <button class="btn btn-sm rounded-circle ml-1 smallBtnRound" type="button"
                           (click)="removeFromMaterialIngredients(mi.getIngredient())">
                     <img class="removeBtn" src="assets/icons/close.svg" height="18"/>
@@ -379,7 +379,8 @@
           </button>
           <select formControlName="status" class="custom-select selectBox ml-2">
             <option value="{{ saveStatus.DRAFT }}" default>Draft</option>
-            <option value="{{ saveStatus.PUBLISHED }}">Published</option>
+            <option *ngIf="authService.isAdmin()" value="{{ saveStatus.PUBLISHED }}">Published</option>
+            <option *ngIf="!authService.isAdmin()" value="{{ saveStatus.PUBLISHED }}">Submit for Approval</option>
           </select>
             </div>
           </div>
@@ -390,8 +391,10 @@
 </div>
 <div *ngIf="popupPublish" class="popupUser">
   <div class="userEditPopup">
-    <div style="text-align: center;"><h1>Are you sure to publish this label?</h1></div>
-    <div style="text-align: center; font-size: 18px"><p>After publishing you <u>can't</u> edit this label!</p></div>
+    <div *ngIf="authService.isAdmin()" style="text-align: center;"><h1>Are you sure to publish this label?</h1></div>
+    <div *ngIf="authService.isAdmin()" style="text-align: center; font-size: 18px"><p>After publishing you <u>can't</u> edit this label!</p></div>
+    <div *ngIf="!authService.isAdmin()" style="text-align: center;"><h1>Submit this label for approval?</h1></div>
+    <div *ngIf="!authService.isAdmin()" style="text-align: center; font-size: 18px"><p>An admin will review your label before it is published.</p></div>
     <div class="popupUserButtons">
       <button type="button" class="btn btn-primary form-control popupUserBtn" (click)="closePopup()"><img
         height="18" src="assets/icons/close.svg" alt="Cancel"> Cancel

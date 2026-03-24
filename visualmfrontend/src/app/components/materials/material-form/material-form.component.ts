@@ -91,7 +91,7 @@ export class MaterialFormComponent implements OnInit {
       'referenceYear': new FormControl(null, [Validators.required, Validators.pattern(new RegExp('\\d')),
         Validators.minLength(4)]),
       'ingredient': new FormControl(null, this.emptyIngredients.bind(this)),
-      'ingredientType': new FormControl(null),
+      'ingredientUnit': new FormControl('gr'),
       'amount': new FormControl(null, Validators.pattern('^[0-9]*$')),
       'status': new FormControl(SaveStatus.DRAFT, Validators.required),
       'type': new FormControl(null, Validators.required)
@@ -233,10 +233,18 @@ export class MaterialFormComponent implements OnInit {
         }, error => {
           console.log(error);
           this.creationFailed = true;
+          this.onSubmitDisable = false;
+          this.loadingDone = true;
         });
+      }, error => {
+        console.log(error);
+        this.creationFailed = true;
+        this.onSubmitDisable = false;
+        this.loadingDone = true;
       });
     } else {
       this.fileError = true;
+      this.onSubmitDisable = false;
     }
   }
 
@@ -328,11 +336,11 @@ export class MaterialFormComponent implements OnInit {
   public addIngredient(): void {
     const ingredientControl: AbstractControl = this.materialForm.get('ingredient');
     const amountControl: AbstractControl = this.materialForm.get('amount');
-    const ingredientTypeControl: AbstractControl = this.materialForm.get('ingredientType');
+    const ingredientUnitControl: AbstractControl = this.materialForm.get('ingredientUnit');
 
-    const typeValue = ingredientTypeControl.value ? ingredientTypeControl.value.trim() : null;
+    const unitValue = ingredientUnitControl.value || 'gr';
 
-    const selectedIngredient = new Ingredient(0, ingredientControl.value.trim(), typeValue);
+    const selectedIngredient = new Ingredient(0, ingredientControl.value.trim(), unitValue);
     // Add ingredient when value has been set
     if (selectedIngredient != null && ingredientControl.value && amountControl.value
       && this.materialIngredients.length < this.maximumIngredients) {
@@ -342,7 +350,7 @@ export class MaterialFormComponent implements OnInit {
 
       ingredientControl.reset();
       amountControl.reset();
-      ingredientTypeControl.reset();
+      ingredientUnitControl.setValue('gr');
     }
   }
 

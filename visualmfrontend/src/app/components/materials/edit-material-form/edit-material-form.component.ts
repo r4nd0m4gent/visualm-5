@@ -266,7 +266,13 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
         this.router.navigate(['material', this.material.getSequenceNumber()]);
       }, error => {
         this.creationFailed = true;
+        this.onSubmitEdit = false;
+        this.loadingEditDone = true;
       });
+    }, error => {
+      this.creationFailed = true;
+      this.onSubmitEdit = false;
+      this.loadingEditDone = true;
     });
   }
 

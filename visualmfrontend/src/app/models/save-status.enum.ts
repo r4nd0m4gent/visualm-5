@@ -1,4 +1,5 @@
 export enum SaveStatus {
   DRAFT = "DRAFT",
+  PENDING_APPROVAL = "PENDING_APPROVAL",
   PUBLISHED = "PUBLISHED"
 }

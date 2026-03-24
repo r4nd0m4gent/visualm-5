@@ -136,3 +136,7 @@ visualmfrontend/ssl/*
 
 visualmserver/src/main/resources/keystore/*
 !visualmserver/src/main/resources/keystore/.gitkeep
+
+# Deployment secrets
+.env
+nginx/certbot/

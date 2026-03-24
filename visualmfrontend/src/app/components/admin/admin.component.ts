@@ -12,7 +12,7 @@ import {NgForm} from '@angular/forms';
 import {AuthService} from '../../services/auth.service';
 import {Report} from '../../models/report';
 import {ReportService} from '../../services/report.service';
-import {MaterialIngredient} from '../../models/material-ingredient';
+import {SaveStatus} from '../../models/save-status.enum';
 import {Tag} from '../../models/tag';
 import {AppConfigService} from '../../services/app-config.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -28,6 +28,10 @@ export class AdminComponent implements OnInit {
   public materials: Material[] = [];
   public matchingMaterials: Material[] = [];
   public reports: Report[] = [];
+  public pendingMaterials: Material[] = [];
+  pendingDataSource: MatTableDataSource<Material>;
+  pendingColumns: string[] = ['sequenceNumber', 'name', 'creationDate', 'user', 'action'];
+  pendingDataColumns: string[] = this.pendingColumns;
   materialDataSource: MatTableDataSource<Material>;
   materialColumns: string[] = ['sequenceNumberPublished', 'name', 'saveStatus', 'creationDate','user', 'action'];
   materialDataColumns: string[] = this.materialColumns;
@@ -58,10 +62,12 @@ export class AdminComponent implements OnInit {
   @ViewChild('paginatorMaterial') paginatormaterial: MatPaginator;
   @ViewChild('paginatorUser') paginatorUser: MatPaginator;
   @ViewChild('paginatorReport') paginatorReport: MatPaginator;
+  @ViewChild('paginatorPending') paginatorPending: MatPaginator;
 
   @ViewChild('sortMaterial') sortMaterial: MatSort;
   @ViewChild('sortUser') sortUser: MatSort;
   @ViewChild('sortReport') sortReport: MatSort;
+  @ViewChild('sortPending') sortPending: MatSort;
 
   @ViewChild(MatTableDataSource, {static: true}) table: MatTableDataSource<any>;
 
@@ -132,6 +138,8 @@ export class AdminComponent implements OnInit {
       this.reportDataSource.paginator = this.paginatorReport;
       this.reportDataSource.sort = this.sortReport;
     });
+
+    this.loadPendingMaterials();
 
     // Load saved settings from db
     this.configService.getAll().subscribe(config => {
@@ -259,6 +267,42 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  loadPendingMaterials(): void {
+    this.pendingMaterials = [];
+    this.materialsService.getPending().subscribe(materials => {
+      materials.forEach((material) => {
+        const currentMaterial: Material = Object.assign(new Material(), material);
+        this.pendingMaterials.push(currentMaterial);
+      });
+
+      this.pendingDataSource = new MatTableDataSource<Material>(this.pendingMaterials);
+      this.pendingDataSource.paginator = this.paginatorPending;
+      this.pendingDataSource.sort = this.sortPending;
+    });
+  }
+
+  onApprove(element: Material): void {
+    this.materialsService.approve(element.getSequenceNumber()).subscribe(() => {
+      this.pendingDataSource.data.splice(this.pendingDataSource.data.indexOf(element), 1);
+      this.pendingDataSource._updateChangeSubscription();
+      this.snackBar.open('Label approved and published!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center', verticalPosition: 'bottom'
+      });
+    });
+  }
+
+  onReject(element: Material): void {
+    this.materialsService.reject(element.getSequenceNumber()).subscribe(() => {
+      this.pendingDataSource.data.splice(this.pendingDataSource.data.indexOf(element), 1);
+      this.pendingDataSource._updateChangeSubscription();
+      this.snackBar.open('Label rejected and returned to draft.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center', verticalPosition: 'bottom'
+      });
+    });
+  }
+
   applyFilterMaterial(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     let string = filterValue.replace(/\#/g,"");
@@ -297,41 +341,32 @@ export class AdminComponent implements OnInit {
     setTimeout(() => {
       switch (indexNumber) {
         case 0:
-          this.materialDataSource.paginator = null;
-          this.userDataSource.paginator = null;
-          this.reportDataSource.paginator = null;
-
-          this.materialDataSource.sort = null;
-          this.userDataSource.sort = null;
-          this.reportDataSource.sort = null;
+          if (this.pendingDataSource) this.pendingDataSource.paginator = this.paginatorPending;
+          if (this.pendingDataSource) this.pendingDataSource.sort = this.sortPending;
+          if (this.materialDataSource) this.materialDataSource.paginator = null;
+          if (this.userDataSource) this.userDataSource.paginator = null;
+          if (this.reportDataSource) this.reportDataSource.paginator = null;
           break;
         case 1:
-          this.materialDataSource.paginator = this.paginatormaterial;
-          this.userDataSource.paginator = null;
-          this.reportDataSource.paginator = null;
-
-          this.materialDataSource.sort = this.sortMaterial;
-          this.userDataSource.sort = null;
-          this.reportDataSource.sort = null;
+          if (this.materialDataSource) this.materialDataSource.paginator = this.paginatormaterial;
+          if (this.materialDataSource) this.materialDataSource.sort = this.sortMaterial;
+          if (this.pendingDataSource) this.pendingDataSource.paginator = null;
+          if (this.userDataSource) this.userDataSource.paginator = null;
+          if (this.reportDataSource) this.reportDataSource.paginator = null;
           break;
         case 2:
-          this.userDataSource.paginator = this.paginatorUser;
-          this.materialDataSource.paginator = null;
-          this.reportDataSource.paginator = null;
-
-          this.userDataSource.sort = this.sortUser;
-          this.materialDataSource.sort = null;
-          this.reportDataSource.sort = null;
+          if (this.userDataSource) this.userDataSource.paginator = this.paginatorUser;
+          if (this.userDataSource) this.userDataSource.sort = this.sortUser;
+          if (this.pendingDataSource) this.pendingDataSource.paginator = null;
+          if (this.materialDataSource) this.materialDataSource.paginator = null;
+          if (this.reportDataSource) this.reportDataSource.paginator = null;
           break;
-
         case 3:
-          this.reportDataSource.paginator = this.paginatorReport;
-          this.materialDataSource.paginator = null;
-          this.userDataSource.paginator = null;
-
-          this.reportDataSource.sort = this.sortReport;
-          this.materialDataSource.sort = null;
-          this.userDataSource.sort = null;
+          if (this.reportDataSource) this.reportDataSource.paginator = this.paginatorReport;
+          if (this.reportDataSource) this.reportDataSource.sort = this.sortReport;
+          if (this.pendingDataSource) this.pendingDataSource.paginator = null;
+          if (this.materialDataSource) this.materialDataSource.paginator = null;
+          if (this.userDataSource) this.userDataSource.paginator = null;
           break;
       }
     });

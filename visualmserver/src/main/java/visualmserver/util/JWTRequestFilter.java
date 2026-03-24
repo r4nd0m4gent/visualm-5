@@ -21,6 +21,7 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 
     private static final Set<String> SECURED_PATHS = Set.of("/materials", "/ingredients", "/user", "/report", "/config");
     private static final Set<String> ALLOWED_GET_PATHS = Set.of("/materials", "/ingredients", "/config");
+    private static final Set<String> RESTRICTED_GET_PATHS = Set.of("/materials/pending");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,8 +40,10 @@ public class JWTRequestFilter extends OncePerRequestFilter {
             }
 
             // Currently all GET endpoints of secured path should not be locked behind a JWT token
+            // except for restricted paths that require authentication
             if (HttpMethod.GET.matches(request.getMethod()) &&
-                    ALLOWED_GET_PATHS.stream().anyMatch(path::startsWith)) {
+                    ALLOWED_GET_PATHS.stream().anyMatch(path::startsWith) &&
+                    RESTRICTED_GET_PATHS.stream().noneMatch(path::startsWith)) {
                 filterChain.doFilter(request, response);
                 return;
             }

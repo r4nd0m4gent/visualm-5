@@ -71,6 +71,7 @@ public class AuthController {
         }
 
         user.setPassword(bC.encode(user.getPassword()));
+        user.setVerified(true);
         User savedUser = this.userRepository.save(user);
 
         if (!savedUser.isVerified()) {

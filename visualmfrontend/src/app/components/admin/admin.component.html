@@ -2,6 +2,61 @@
 
   <mat-tab>
     <ng-template mat-tab-label>
+      Pending Approval <span *ngIf="pendingMaterials.length > 0" style="margin-left: 6px; background: #ff5722; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px;">{{pendingMaterials.length}}</span>
+    </ng-template>
+
+    <div class="admin-data">
+      <mat-table #sortPending="matSort" [dataSource]="pendingDataSource" matSort>
+        <ng-container matColumnDef="sequenceNumber">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> ID</mat-header-cell>
+          <mat-cell *matCellDef="let row">#{{row.sequenceNumber}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Name</mat-header-cell>
+          <mat-cell class="text-uppercase" *matCellDef="let row"> {{row.name}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="creationDate">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>Created At</mat-header-cell>
+          <mat-cell *matCellDef="let row"> {{row.creationDate}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="user">
+          <mat-header-cell *matHeaderCellDef> Author</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{row.user.firstname + " " + row.user.lastname}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <mat-header-cell *matHeaderCellDef> Action</mat-header-cell>
+          <mat-cell *matCellDef="let element">
+            <a mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
+              <img src="assets/icons/eye.svg" height="24">
+            </a> |
+            <a mat-icon-button matTooltip="Approve and publish" (click)="onApprove(element)" style="cursor: pointer;">
+              <img src="assets/icons/done.svg" height="24">
+            </a> |
+            <a mat-icon-button matTooltip="Reject (return to draft)" (click)="onReject(element)" style="cursor: pointer;">
+              <img src="assets/icons/close_blue.svg" height="24">
+            </a>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="pendingColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: pendingDataColumns;">
+        </mat-row>
+      </mat-table>
+
+      <div *ngIf="pendingMaterials.length === 0" style="text-align: center; padding: 40px; color: #888;">
+        No labels pending approval.
+      </div>
+
+      <mat-paginator #paginatorPending [pageSizeOptions]="[10, 25, 50]"></mat-paginator>
+    </div>
+  </mat-tab>
+
+  <mat-tab>
+    <ng-template mat-tab-label>
       Label
     </ng-template>
 

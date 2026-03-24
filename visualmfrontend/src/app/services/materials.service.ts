@@ -51,4 +51,16 @@ export class MaterialsService {
   public update(id: number, material: Material): Observable<Material> {
     return this.http.put<Material>(`${MaterialsService.BASE_URL}/${id}`, material);
   }
+
+  public getPending(): Observable<Material[]> {
+    return this.http.get<Material[]>(`${MaterialsService.BASE_URL}/pending`);
+  }
+
+  public approve(sequenceNumber: number): Observable<Material> {
+    return this.http.put<Material>(`${MaterialsService.BASE_URL}/approve/${sequenceNumber}`, {});
+  }
+
+  public reject(sequenceNumber: number): Observable<Material> {
+    return this.http.put<Material>(`${MaterialsService.BASE_URL}/reject/${sequenceNumber}`, {});
+  }
 }

@@ -130,17 +130,17 @@
               </div>
 
               <div class="col-md-12 mt-2 col-sm-3 col-lg-3">
-                <input class="form-control rounded-pill" formControlName="ingredientType" type="text" value=""
-                       placeholder="Type" maxlength="20"
-                       [ngClass]="{'is-invalid': !materialForm.get('ingredientType').valid && materialForm.get('ingredientType').touched,
-                       'is-valid': materialForm.get('ingredientType').valid && materialForm.get('ingredientType').touched}"/>
-              </div>
-
-              <div class="col-md-12 mt-2 col-sm-3 col-lg-3">
                 <input class="form-control rounded-pill" formControlName="amount" type="number"
-                       placeholder="Grams" (keydown.enter)="addIngredient()"
+                       placeholder="Amount" (keydown.enter)="addIngredient()"
                        [ngClass]="{'is-invalid': !materialForm.get('amount').valid && materialForm.get('amount').touched,
 			                  'is-valid': materialForm.get('amount').valid && materialForm.get('amount').touched}"/>
+              </div>
+
+              <div class="col-md-12 mt-2 col-sm-3 col-lg-2">
+                <select class="form-control rounded-pill" formControlName="ingredientUnit">
+                  <option value="gr">gr</option>
+                  <option value="ml">ml</option>
+                </select>
               </div>
 
               <div class="col-md-12 mt-2 col-sm-3 col-lg-3">
@@ -169,7 +169,7 @@
             <div class="ingredient-container mt-3">
               <ul>
                 <li *ngFor="let mi of materialIngredients" class="mb-1">
-                  {{ mi.getIngredient().getName() }}-{{ mi.getIngredient().getType() }} {{ mi.getAmount() }} gr
+                  {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() || 'gr' }}
                   <button class="btn btn-sm rounded-circle ml-1 smallBtnRound" type="button"
                           (click)="removeFromMaterialIngredients(mi.getIngredient())">
                     <img class="removeBtn" src="assets/icons/close.svg" height="18"/>

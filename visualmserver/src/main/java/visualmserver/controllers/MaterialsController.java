@@ -12,6 +12,7 @@ import visualmserver.exceptions.PreConditionException;
 import visualmserver.exceptions.ResourceNotFoundException;
 import visualmserver.models.Material;
 import visualmserver.models.MaterialIngredient;
+import visualmserver.models.SaveStatus;
 import visualmserver.models.User;
 import visualmserver.repositories.IngredientRepository;
 import visualmserver.repositories.MaterialIngredientRepository;
@@ -109,13 +110,19 @@ public class MaterialsController {
     }
 
     @PostMapping
-    public ResponseEntity<Material> saveMaterial(@RequestBody @Valid Material material, Errors errors) throws IOException {
+    public ResponseEntity<Material> saveMaterial(@RequestBody @Valid Material material, Errors errors,
+            @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
         if (errors.hasErrors()) {
             //throw new InvalidDataException("Invalid Material object data.");
             throw new InvalidDataException(errors.toString());
         }
 
         this.validateSize(material);
+
+        // Non-admin users cannot publish directly — route through approval
+        if (material.getSaveStatus() == SaveStatus.PUBLISHED && !tokenInfo.isAdmin()) {
+            material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
+        }
 
         if (material.getOverviewURL() != null) {
             String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), String.format("/images/material/%s/", material.getUser().getId()));
@@ -134,7 +141,8 @@ public class MaterialsController {
     }
 
     @PutMapping("/{sequenceNumber}")
-    public ResponseEntity<Material> updateMaterial(@PathVariable long sequenceNumber, @RequestBody @Valid Material material, Errors errors) throws IOException {
+    public ResponseEntity<Material> updateMaterial(@PathVariable long sequenceNumber, @RequestBody @Valid Material material, Errors errors,
+            @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
         if (errors.hasErrors()) {
             throw new InvalidDataException("Invalid user object data.");
         }
@@ -152,6 +160,11 @@ public class MaterialsController {
             throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
         }
 
+        // Non-admin users cannot publish directly — route through approval
+        if (material.getSaveStatus() == SaveStatus.PUBLISHED && !tokenInfo.isAdmin()) {
+            material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
+        }
+
         if (material.getOverviewURL() != null) {
             String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), String.format("/images/material/%s/", material.getUser().getId()));
             material.setOverviewURL(savedImgPath);
@@ -167,6 +180,78 @@ public class MaterialsController {
         }
 
         Material savedMaterial = this.insertMaterial(material, foundMaterial);
+        return ResponseEntity.ok().body(savedMaterial);
+    }
+
+    @GetMapping("/pending")
+    public List<Material> getPendingMaterials(@RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
+        if (!tokenInfo.isAdmin()) {
+            throw new AuthorizationException("Only administrators can view pending materials.");
+        }
+
+        List<Material> materials = this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
+
+        for (Material material : materials) {
+            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
+            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
+        }
+
+        return materials;
+    }
+
+    @PutMapping("/approve/{sequenceNumber}")
+    public ResponseEntity<Material> approveMaterial(@PathVariable Long sequenceNumber,
+            @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
+        if (!tokenInfo.isAdmin()) {
+            throw new AuthorizationException("Only administrators can approve materials.");
+        }
+
+        Material material = this.materialsRepository.getMaterialBySequenceNumber(sequenceNumber);
+
+        if (material == null) {
+            throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
+        }
+
+        if (material.getSaveStatus() != SaveStatus.PENDING_APPROVAL) {
+            throw new PreConditionException("Material is not pending approval.");
+        }
+
+        // Assign a published sequence number
+        List<Material> publishedMaterials = this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PUBLISHED);
+        long maxPublished = publishedMaterials.stream()
+                .filter(m -> m.getSequenceNumberPublished() != null)
+                .mapToLong(Material::getSequenceNumberPublished)
+                .max()
+                .orElse(0);
+        material.setSequenceNumberPublished(maxPublished + 1);
+        material.setSaveStatus(SaveStatus.PUBLISHED);
+
+        Material savedMaterial = this.materialsRepository.save(material);
+        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
+        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
+
+        return ResponseEntity.ok().body(savedMaterial);
+    }
+
+    @PutMapping("/reject/{sequenceNumber}")
+    public ResponseEntity<Material> rejectMaterial(@PathVariable Long sequenceNumber,
+            @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
+        if (!tokenInfo.isAdmin()) {
+            throw new AuthorizationException("Only administrators can reject materials.");
+        }
+
+        Material material = this.materialsRepository.getMaterialBySequenceNumber(sequenceNumber);
+
+        if (material == null) {
+            throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
+        }
+
+        material.setSaveStatus(SaveStatus.DRAFT);
+
+        Material savedMaterial = this.materialsRepository.save(material);
+        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
+        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
+
         return ResponseEntity.ok().body(savedMaterial);
     }
 
