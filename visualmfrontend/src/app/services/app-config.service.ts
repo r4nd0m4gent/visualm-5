@@ -16,6 +16,10 @@ export class AppConfigService {
     return this.http.put<object>(`${AppConfigService.BASE_URL}/default`, config).pipe(share());
   }
 
+  public updateOrganisation(name: string): Observable<any> {
+    return this.http.put<object>(`${AppConfigService.BASE_URL}/default`, { organisation: name }).pipe(share());
+  }
+
   public getAll(): Observable<any> {
     return this.http.get(`${AppConfigService.BASE_URL}`).pipe(share());
   }

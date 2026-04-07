@@ -7,8 +7,6 @@
         <div class="row">
           <div class="col-md-4">
 
-            <img src="{{this.logoPath}}" style="width: 10rem;" [ngClass]="{'is-hidden': bitlyURL }"/>
-
             <ngx-qrcode
               [ngClass]="{'is-hidden': !bitlyURL }"
               [elementType]="elementType"
@@ -105,7 +103,23 @@
             </div>
           </div>
           <div class="col-md-4">
-            <img class="rounded float-right" style="width: 10rem;" alt="" src="{{this.logoPath}}"/>
+            <div class="org-section float-right text-center">
+              <img class="rounded org-logo" alt="Organisation logo" [src]="displayLogoPath"/>
+              <div class="org-name-toggle" (click)="orgDropdownOpen = !orgDropdownOpen">
+                <span class="org-name-label">{{ organisationName }}</span>
+                <span class="org-dropdown-arrow">&#9662;</span>
+              </div>
+              <div class="org-dropdown" *ngIf="orgDropdownOpen">
+                <input class="form-control form-control-sm rounded-pill mb-2" type="text" placeholder="Organisation name"
+                       [(ngModel)]="organisationName" [ngModelOptions]="{standalone: true}" maxlength="40"/>
+                <label class="btn btn-sm btn-outline-secondary rounded-pill org-upload-btn mb-1">
+                  Upload logo
+                  <input type="file" accept="image/*" (change)="onLogoFileSelected($event)" hidden/>
+                </label>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill ml-1"
+                        (click)="saveOrganisationName()">Save</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -230,7 +244,7 @@
         </div>
 
         <div class="row mt-4">
-          <div class="col-md-6">
+          <div class="col-md-9">
             <a matTooltip="If you have a variation on an other Label, you can check the checkbox to search for it"
                matTooltipPosition="after">
               <img src="assets/icons/information-outline.svg" height="18"/>
@@ -249,25 +263,35 @@
             </h2>
 
             <div class="form-row mb-2" [ngClass]="{'is-hidden': materialForm.get('variationOn').value}">
-              <div class="col-md-12 col-lg-4 mb-2">
+              <div class="col-md-12 col-lg-3 mb-2">
                 <input class="form-control rounded-pill" type="text" value="" placeholder="Author" formControlName="referenceAuthor" maxlength="15"
                        [ngClass]="{'is-invalid': !materialForm.get('referenceAuthor').valid && materialForm.get('referenceAuthor').touched,
                           'is-valid': materialForm.get('referenceAuthor').valid && materialForm.get('referenceAuthor').touched}"/>
               </div>
 
-              <div class="col-md-12 col-lg-4 mb-2">
+              <div class="col-md-12 col-lg-3 mb-2">
+                <input class="form-control rounded-pill" type="email" placeholder="Email (optional)" formControlName="referenceEmail"
+                       [ngClass]="{'is-invalid': !materialForm.get('referenceEmail').valid && materialForm.get('referenceEmail').touched,
+                          'is-valid': materialForm.get('referenceEmail').valid && materialForm.get('referenceEmail').touched}"/>
+              </div>
+
+              <div class="col-md-12 col-lg-3 mb-2">
                 <input class="form-control rounded-pill" type="text" placeholder="Title" formControlName="referenceTitle" maxlength="20"
                        [ngClass]="{'is-invalid': !materialForm.get('referenceTitle').valid && materialForm.get('referenceTitle').touched,
                           'is-valid': materialForm.get('referenceTitle').valid && materialForm.get('referenceTitle').touched}"/>
               </div>
 
-              <div class="col-md-12 col-lg-4">
+              <div class="col-md-12 col-lg-3">
                 <input class="form-control rounded-pill" type="text" placeholder="Year" formControlName="referenceYear"
                        [ngClass]="{'is-invalid': !materialForm.get('referenceYear').valid && materialForm.get('referenceYear').touched,
                           'is-valid': materialForm.get('referenceYear').valid && materialForm.get('referenceYear').touched}"/>
               </div>
 
             </div>
+            <small class="small ml-2 smallTextError" *ngIf="!materialForm.get('referenceEmail').valid && materialForm.get('referenceEmail').touched">
+              &bull; Please enter a valid email address.
+              <br>
+            </small>
             <small class="small ml-2 smallTextError" *ngIf="!materialForm.get('referenceAuthor').valid && materialForm.get('referenceAuthor').touched">
               &bull; Please enter the name of the author.
               <br>
@@ -328,7 +352,7 @@
             </div>
           </div>
 
-          <div class="col-md-6"></div>
+          <div class="col-md-3"></div>
         </div>
 
         <div class="row">
@@ -373,16 +397,20 @@
             Cancel
           </button>
             <div class="saveButtonFlex">
-          <button [disabled]="onSubmitDisable"  class="btn is-primary form-control saveBtnMat" id="save-btn" type="submit">
-            <img height="18" src="assets/icons/content-save.svg">
-            Save as
-          </button>
-          <select formControlName="status" class="custom-select selectBox ml-2">
-            <option value="{{ saveStatus.DRAFT }}" default>Draft</option>
-            <option *ngIf="authService.isAdmin()" value="{{ saveStatus.PUBLISHED }}">Published</option>
-            <option *ngIf="!authService.isAdmin()" value="{{ saveStatus.PUBLISHED }}">Submit for Approval</option>
-          </select>
+              <button type="button" class="btn is-primary form-control pdfBtnMat" (click)="generatePdf()">
+                <img height="18" src="assets/icons/content-save.svg">
+                Save as PDF label
+              </button>
+              <select class="custom-select selectBox ml-0" (change)="onSelectFormat($event.target.value)">
+                <option value="a4" default>A4</option>
+                <option value="a5">A5</option>
+                <option value="a6">A6</option>
+              </select>
             </div>
+            <button [disabled]="onSubmitDisable" class="btn is-primary form-control submitBtn ml-2" id="save-btn" type="submit">
+              <img height="18" src="assets/icons/content-save.svg">
+              Submit
+            </button>
           </div>
         </div>
       </div>
@@ -402,6 +430,108 @@
       <button type="submit" class="btn btn-primary form-control popupUserBtn" (click)="onSubmit()"><img
         height="18" src="assets/icons/content-save-outline.svg" alt="Publish"> Publish
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden PDF Label Template -->
+<div class="sammie" id="pdfLabelForm">
+  <div class="container-fluid MaterialPDF">
+    <div class="pt-5">
+      <div class="shadow bg-light p-3 outerMaterialPDF">
+
+        <!-- Top Title (flipped) -->
+        <div class="text-center flippedTitle">
+          <h1 class="text-uppercase name">{{ materialForm.get('title').value || 'Untitled' }}</h1>
+          <h3 class="type">{{ materialType[materialForm.get('type').value] }}</h3>
+          <h3 class="Snumber">DRAFT</h3>
+        </div>
+
+        <!-- border -->
+        <div class="borderTop"></div>
+        <div class="borderCenter"></div>
+
+        <!-- PDF Body -->
+        <div class="pdfText">
+          <div class="row">
+            <div class="col-md-4">
+              <ngx-qrcode
+                [ngClass]="{'is-hidden': !bitlyURL }"
+                [elementType]="elementType"
+                [errorCorrectionLevel]="correctionLevel"
+                [value]="bitlyURL"
+                cssClass="bshadow"></ngx-qrcode>
+              <label class="label m-2">{{ bitlyURL }}</label>
+            </div>
+
+            <div class="col-md-4 text-center">
+              <h1 class="nameTitle text-uppercase">{{ materialForm.get('title').value || 'Untitled' }}</h1>
+              <h3 class="type">{{ materialType[materialForm.get('type').value] }}</h3>
+              <h3 class="Snumber">DRAFT</h3>
+              <div class="tags-container2">
+                <span class="tag ml-1" *ngFor="let tag of tags">| {{ tag }}</span>
+              </div>
+            </div>
+
+            <div class="col-md-4 text-right">
+              <img class="rounded" style="width: 10rem;" alt="" [src]="displayLogoPath"/>
+              <div *ngIf="organisationName" class="org-name-pdf mt-1">{{ organisationName }}</div>
+            </div>
+          </div>
+
+          <hr/>
+
+          <div class="pdfInfo">
+            <div class="stepsIngredients">
+              <div class="IngredientsDiv">
+                <h1 class="title">INGREDIENTS:</h1>
+                <div class="ingredient-container mt-3">
+                  <ul>
+                    <li *ngFor="let mi of materialIngredients" class="mb-1 info ingredient">
+                      {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() || 'gr' }}
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="changes mt-4">
+                  <h1 class="title">REFERENCE & CHANGES:</h1>
+                  <div class="row">
+                    <p class="info changeWho" *ngIf="!materialForm.get('variationOn').value">
+                      By {{ materialForm.get('referenceAuthor').value }} - {{ materialForm.get('referenceTitle').value }} - {{ materialForm.get('referenceYear').value }}
+                    </p>
+                    <p class="info changeWho" *ngIf="materialForm.get('variationOn').value">
+                      {{ recipeTitle }} {{ recipeAuthor }}
+                    </p>
+                    <p class="info word-break changesTekst">
+                      {{ materialForm.get('changes').value }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ProcedureDiv">
+                <h1 class="title">MAKING PROCEDURE:</h1>
+                <div class="procedure-container mt-2">
+                  <ul>
+                    <li *ngFor="let stepItem of steps" class="mb-1 info procedure word-break">
+                      {{ stepItem }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="row">
+        <div class="col-md-12 text-center makerr">
+          <hr class="marker markerBottom"/>
+          <p class="maker">Maker: {{ user?.getFirstname() + " " + user?.getLastname() }}
+            - {{ creationDate | date:'dd-MM-yyyy' }} - {{ user?.getEmail() }}
+            <span *ngIf="materialForm.get('referenceEmail').value"> - {{ materialForm.get('referenceEmail').value }}</span></p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -3,47 +3,50 @@ set -e
 
 # ============================================================
 # SSL Setup Script using Let's Encrypt (Certbot)
-# Usage: bash setup-ssl.sh your-domain.com
+# Usage: bash setup-ssl.sh your-domain.com [your-email@example.com]
 # ============================================================
 
-DOMAIN=$1
-
-if [ -z "$DOMAIN" ]; then
-    echo "Usage: bash setup-ssl.sh your-domain.com"
-    exit 1
-fi
+DOMAIN=${1:-samplemanagementtool.org}
+EMAIL=${2:-admin@$DOMAIN}
 
 echo "=== Setting up SSL for $DOMAIN ==="
+
+# Ensure certbot directories exist
+mkdir -p nginx/certbot/conf nginx/certbot/www
+
+# Make sure the frontend (nginx) is running so it can serve the ACME challenge
+docker compose up -d frontend
+
+echo "Waiting for Nginx to be ready..."
+sleep 5
 
 # Step 1: Get the certificate
 docker compose run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
     -d "$DOMAIN" \
-    --email "admin@$DOMAIN" \
+    -d "www.$DOMAIN" \
+    --email "$EMAIL" \
     --agree-tos \
     --no-eff-email
 
-# Step 2: Update nginx config — replace YOUR_DOMAIN and enable SSL block
-sed -i "s/YOUR_DOMAIN/$DOMAIN/g" nginx/nginx.conf
+# Step 2: Enable HTTPS in nginx.conf
+# Uncomment the HTTPS redirect in the HTTP block
+sed -i 's|^    # return 301 https://\$host\$request_uri;|    return 301 https://\$host\$request_uri;|' nginx/nginx.conf
 
-# Uncomment the HTTPS redirect
-sed -i 's|# \(location / {\)|\1|' nginx/nginx.conf
-sed -i 's|# \(    return 301 https://\$host\$request_uri;\)|\1|' nginx/nginx.conf
-# Uncomment the SSL server block
-sed -i 's/^# \(server {\)/\1/' nginx/nginx.conf
-sed -i '/^# --- Uncomment this block/d' nginx/nginx.conf
-sed -i 's/^#     /    /g' nginx/nginx.conf
-sed -i 's/^# }/}/' nginx/nginx.conf
-
-# Comment out the HTTP content block
-sed -i '/# --- Remove everything below this line/,/^}$/{ /# ---/d; /^}/!s/^/# /; }' nginx/nginx.conf
-
-# Step 3: Reload Nginx
-docker compose exec frontend nginx -s reload
+# Comment out HTTP content blocks (everything between the redirect and closing brace)
+# — users should manually remove the HTTP-served content block and uncomment the SSL server block.
 
 echo ""
-echo "=== SSL setup complete! ==="
-echo "Visit https://$DOMAIN"
+echo "=== Certificate obtained! ==="
 echo ""
-echo "Certificate auto-renewal is handled by the certbot container."
+echo "Now edit nginx/nginx.conf:"
+echo "  1. Uncomment the HTTPS server block at the bottom"
+echo "  2. In the HTTP server block, keep only the ACME challenge + redirect"
+echo "     (remove or comment out the root, proxy, and SPA locations)"
+echo "  3. Run: docker compose exec frontend nginx -s reload"
+echo ""
+echo "To auto-renew, add this cron job (sudo crontab -e):"
+echo "  0 3 * * * cd $(pwd) && docker compose run --rm certbot renew && docker compose exec frontend nginx -s reload"
+echo ""
+echo "Visit https://$DOMAIN after completing the steps above."

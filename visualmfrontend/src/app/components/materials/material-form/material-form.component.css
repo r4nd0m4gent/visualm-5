@@ -8,6 +8,47 @@
   border-radius: 30px;
 }
 
+.org-section {
+  max-width: 12rem;
+}
+.org-logo {
+  width: 10rem;
+  max-height: 8rem;
+  object-fit: contain;
+}
+.org-name-toggle {
+  cursor: pointer;
+  margin-top: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.org-name-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+}
+.org-dropdown-arrow {
+  font-size: 0.7rem;
+  color: #666;
+}
+.org-dropdown {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+}
+.org-upload-btn {
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.org-name-pdf {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+}
+
 .mat-tooltip{
   size: 50px !important;
 }
@@ -157,7 +198,7 @@ color: red !important;
 }
 #save-btn {
   min-width: 100px !important;
-  width: 300px !important;
+  width: auto !important;
 }
 .saveButtonFlex {
   display: flex;
@@ -181,6 +222,163 @@ color: red !important;
 
 ::ng-deep .mat-simple-snackbar-action {
   color: #00bcd4;
+}
+
+/* PDF button */
+.pdfBtnMat {
+  border-radius: 50px 0 0 50px;
+  min-width: 100px !important;
+  width: 300px !important;
+}
+
+.submitBtn {
+  border-radius: 50px;
+  min-width: 100px !important;
+  width: auto !important;
+}
+
+/* Hidden PDF template */
+.sammie {
+  display: none;
+  margin-top: 20%;
+  width: 1050px;
+  height: 1485px;
+}
+
+.outerMaterialPDF {
+  width: 1050px;
+  height: 1485px;
+  background: white !important;
+}
+
+.MaterialPDF {
+  font-family: "Calibri Light", "Roboto Light", sans-serif;
+}
+
+.flippedTitle {
+  -moz-transform: scale(-1, -1);
+  -webkit-transform: scale(-1, -1);
+  -o-transform: scale(-1, -1);
+  -ms-transform: scale(-1, -1);
+  transform: scale(-1, -1);
+  margin-top: 220px;
+  margin-bottom: 90px;
+}
+
+.borderCenter {
+  height: 85px;
+  width: 300px;
+  margin: auto auto 50px;
+}
+
+.borderTop {
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+.pdfText {
+  margin-left: 80px;
+  margin-right: 80px;
+}
+
+.name {
+  letter-spacing: 4px;
+  font-size: 27pt;
+}
+
+.nameTitle {
+  letter-spacing: 4px;
+  font-size: 27pt;
+  width: 500px;
+  margin-left: -42.5%;
+}
+
+.type {
+  letter-spacing: 4px;
+  font-size: 18pt;
+}
+
+.Snumber {
+  font-size: 15pt;
+}
+
+.tag {
+  font-size: 13pt;
+}
+
+.title {
+  font-size: 20pt;
+}
+
+.info {
+  font-size: 17pt;
+  letter-spacing: 4px;
+  line-height: 1.05;
+}
+
+.ingredient {
+  margin-left: -8%;
+  padding-left: 5px;
+}
+
+.procedure {
+  margin-left: -8%;
+  padding-left: 5px;
+}
+
+.tags-container2 {
+  width: 500px;
+  margin-left: -40%;
+}
+
+.stepsIngredients {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-around;
+  position: relative;
+}
+
+.changes {
+  margin: 0;
+  width: auto;
+  max-width: 400px;
+}
+
+.IngredientsDiv {
+  margin-right: 5px;
+}
+
+.ProcedureDiv {
+  margin-left: 5px;
+  max-width: 500px;
+}
+
+.changesTekst {
+  letter-spacing: 4px;
+  margin-left: 4%;
+}
+
+.changeWho {
+  margin-left: 4%;
+}
+
+.makerr {
+  margin-top: -13%;
+}
+
+.markerBottom {
+  margin: 0 auto;
+}
+
+.marker {
+  width: 80%;
+}
+
+.maker {
+  margin-top: 1%;
+  font-size: 15pt;
+  letter-spacing: 5px;
 }
 .popupUser {
   position: fixed;

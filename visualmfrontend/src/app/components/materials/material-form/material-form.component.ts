@@ -17,6 +17,8 @@ import {UserService} from '../../../services/user.service';
 import {AuthService} from '../../../services/auth.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {AppConfigService} from '../../../services/app-config.service';
+import jspdf from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-material-form',
@@ -45,6 +47,9 @@ export class MaterialFormComponent implements OnInit {
   public saveStatus = SaveStatus;
   public user: User;
   public logoPath: string;
+  public customLogoUrl: string = null;
+  public organisationName: string = '';
+  public orgDropdownOpen: boolean = false;
   protected parentId: number = null;
   public materials: Material[] = [];
   public popupPublish:boolean = false;
@@ -59,6 +64,10 @@ export class MaterialFormComponent implements OnInit {
   public materialForm: FormGroup;
   public bitlyURL: string;
   onSubmitDisable: boolean = false;
+  public selectedFormat: string = 'a4';
+  public pdfFormats: string[] = ['a4', 'a5', 'a6'];
+  public materialType = MaterialType;
+  public materialTag = MaterialTag;
 
   constructor(protected materialService: MaterialsService, protected ingredientService: IngredientService,
               protected router: Router, protected userService: UserService, protected authService: AuthService,
@@ -71,6 +80,7 @@ export class MaterialFormComponent implements OnInit {
 
     this.configService.getAll().subscribe(config => {
       this.logoPath = config.logo_path;
+      this.organisationName = config.organisation || 'HvA';
     });
   }
 
@@ -87,6 +97,7 @@ export class MaterialFormComponent implements OnInit {
       'sequenceNumber': new FormControl(null),
       'variationOn': new FormControl(false),
       'referenceAuthor': new FormControl(null, [Validators.required, Validators.pattern(whitespaceCheck)]),
+      'referenceEmail': new FormControl(null, Validators.email),
       'referenceTitle': new FormControl(null, [Validators.required, Validators.pattern(whitespaceCheck)]),
       'referenceYear': new FormControl(null, [Validators.required, Validators.pattern(new RegExp('\\d')),
         Validators.minLength(4)]),
@@ -136,7 +147,9 @@ export class MaterialFormComponent implements OnInit {
   }
 
   public onCreateLabelPublished() {
-    if (!this.materialForm.valid && this.materialForm.get('status').value === SaveStatus.PUBLISHED) {
+    this.materialForm.get('status').setValue(SaveStatus.PUBLISHED);
+
+    if (!this.materialForm.valid) {
       this.materialForm.markAllAsTouched();
 
       this.snackBar.open('Oops something went wrong :( Check all the fields for errors ', 'Close', {
@@ -145,11 +158,9 @@ export class MaterialFormComponent implements OnInit {
       });
 
       return;
-    } else if (this.materialForm.get('status').value === SaveStatus.DRAFT) {
-      this.onSubmit();
-    } else if (this.materialForm.valid && this.materialForm.get('status').value === SaveStatus.PUBLISHED) {
-      this.popupPublish = true;
     }
+
+    this.popupPublish = true;
   }
 
   closePopup(): void {
@@ -305,6 +316,37 @@ export class MaterialFormComponent implements OnInit {
     }
   }
 
+  public get displayLogoPath(): string {
+    return this.customLogoUrl || this.logoPath;
+  }
+
+  public onLogoFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (!file.type.startsWith('image/')) {
+        this.snackBar.open('Please select an image file.', 'Close', { duration: 3000 });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.customLogoUrl = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  public removeCustomLogo(): void {
+    this.customLogoUrl = null;
+  }
+
+  public saveOrganisationName(): void {
+    this.orgDropdownOpen = false;
+    this.snackBar.open('Organisation name updated.', 'Close', {
+      duration: 2000, horizontalPosition: 'center', verticalPosition: 'bottom',
+    });
+  }
+
   public updateTags(event: any, data: string): void {
     if (event.target.checked) {
       this.tags.push(MaterialTag[data]);
@@ -370,6 +412,83 @@ export class MaterialFormComponent implements OnInit {
     if (removeIndex !== -1) {
       this.materialIngredients.splice(removeIndex, 1);
     }
+  }
+
+  public onSelectFormat(value: string): void {
+    this.selectedFormat = value;
+  }
+
+  public generatePdf(): void {
+    const title = this.materialForm.get('title').value || 'Untitled';
+    const data = window.document.getElementById('pdfLabelForm');
+    data.style.display = 'block';
+
+    html2canvas(data, { scale: 2 }).then(canvas => {
+      data.style.display = 'none';
+      const contentDataURL = canvas.toDataURL('image/png');
+      const format = this.selectedFormat || 'a4';
+      const pdf = new jspdf('p', 'mm', format);
+      pdf.addImage(contentDataURL, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+
+      if (format === 'a4') {
+        pdf.line(10, 0, 10, 7);
+        pdf.line(0, 10, 7, 10);
+        pdf.line(200, 0, 200, 7);
+        pdf.line(203, 10, 210, 10);
+        pdf.line(10, 291, 10, 300);
+        pdf.line(0, 288, 7, 288);
+        pdf.line(200, 291, 200, 300);
+        pdf.line(203, 288, 210, 288);
+        pdf.setLineDashPattern([0.5, 0.5], 0);
+        pdf.setDrawColor(105, 105, 105);
+        pdf.line(16, 50, 200, 50);
+        pdf.line(16, 90, 200, 90);
+        pdf.line(16, 100, 200, 100);
+        pdf.line(79.4, 116, 136, 116);
+        pdf.line(78.2, 100, 79.4, 116);
+        pdf.line(137.2, 100, 136, 116);
+      }
+
+      if (format === 'a5') {
+        pdf.line(7, 0, 7, 5.5);
+        pdf.line(0, 7, 5, 7);
+        pdf.line(141, 0, 141, 5.5);
+        pdf.line(143.5, 7, 148, 7);
+        pdf.line(7, 206, 7, 212);
+        pdf.line(0, 204, 5, 204);
+        pdf.line(141, 206, 141, 212);
+        pdf.line(143.5, 204, 148, 204);
+        pdf.setLineDashPattern([0.5, 0.5], 0);
+        pdf.setDrawColor(105, 105, 105);
+        pdf.line(13, 35, 138, 35);
+        pdf.line(13, 62, 138, 62);
+        pdf.line(13, 70, 138, 70);
+        pdf.line(54.8, 84, 99.2, 84);
+        pdf.line(54, 70, 54.8, 84);
+        pdf.line(100, 70, 99.2, 84);
+      }
+
+      if (format === 'a6') {
+        pdf.line(5, 0, 5, 3.7);
+        pdf.line(0, 5, 3.5, 5);
+        pdf.line(100, 0, 100, 3.7);
+        pdf.line(101.5, 5, 105, 5);
+        pdf.line(5, 145, 5, 149);
+        pdf.line(0, 143.5, 3.5, 143.5);
+        pdf.line(100, 145, 100, 149);
+        pdf.line(101.5, 143.5, 105, 143.5);
+        pdf.setLineDashPattern([0.5, 0.5], 0);
+        pdf.setDrawColor(105, 105, 105);
+        pdf.line(10, 25, 98, 25);
+        pdf.line(10, 44, 98, 44);
+        pdf.line(10, 48.5, 98, 48.5);
+        pdf.line(40, 56, 69.2, 56);
+        pdf.line(39.5, 48.5, 40, 56);
+        pdf.line(69.7, 48.5, 69.2, 56);
+      }
+
+      pdf.save(title.trim() + '_draft_' + format + '.pdf');
+    });
   }
 
   public onSequenceNumberSearch(): void {
