@@ -143,8 +143,5 @@
       }
     }
   },
-  "defaultProject": "visualm",
-  "cli": {
-    "analytics": "bd9dd82b-86df-42a8-9669-f855eb1745d2"
-  }
+  "defaultProject": "visualm"
 }

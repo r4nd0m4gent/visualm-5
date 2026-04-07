@@ -47,9 +47,9 @@ export class MaterialFormComponent implements OnInit {
   public saveStatus = SaveStatus;
   public user: User;
   public logoPath: string;
+  public organisationName: string;
   public customLogoUrl: string = null;
-  public organisationName: string = '';
-  public orgDropdownOpen: boolean = false;
+  public orgDropdownOpen = false;
   protected parentId: number = null;
   public materials: Material[] = [];
   public popupPublish:boolean = false;
@@ -80,7 +80,7 @@ export class MaterialFormComponent implements OnInit {
 
     this.configService.getAll().subscribe(config => {
       this.logoPath = config.logo_path;
-      this.organisationName = config.organisation || 'HvA';
+      this.organisationName = config.organisation;
     });
   }
 
@@ -161,6 +161,11 @@ export class MaterialFormComponent implements OnInit {
     }
 
     this.popupPublish = true;
+  }
+
+  public onSaveAsPdf(): void {
+    this.materialForm.get('status').setValue(SaveStatus.DRAFT);
+    this.onSubmit();
   }
 
   closePopup(): void {
@@ -262,7 +267,7 @@ export class MaterialFormComponent implements OnInit {
 
   public validURL(control: FormControl): { [s: string]: boolean } {
     if (!control.value) {
-      return {'urlIsEmpty': true};
+      return null;
     }
 
     const reg = '(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?';
@@ -270,14 +275,6 @@ export class MaterialFormComponent implements OnInit {
 
     if (!result) {
       return {'urlIsInvalid': true};
-    }
-
-    if (!this.bitlyURL) {
-      return {'bitlyNotCreated': true};
-    }
-
-    if (this.bitlyURL !== control.value) {
-      return {'valuesNotEqual': true};
     }
 
     return null;
@@ -302,49 +299,23 @@ export class MaterialFormComponent implements OnInit {
   public generateQRCode(): void {
     const urlControl: AbstractControl = this.materialForm.get('url');
 
-    // Check if URL is valid
-    if (!urlControl.errors.urlIsInvalid || !urlControl.errors.valuesNotEqual) {
-      this.materialService.createBitlyLinkFromURL(urlControl.value).subscribe(
-        data => {
-          this.bitlyURL = data.link;
-          urlControl.reset();
-          urlControl.setValue(data.link);
-        }
-      );
-    } else {
-      this.bitlyURL = null;
+    if (!urlControl.value || (urlControl.errors && urlControl.errors.urlIsInvalid)) {
+      return;
     }
-  }
 
-  public get displayLogoPath(): string {
-    return this.customLogoUrl || this.logoPath;
-  }
-
-  public onLogoFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      if (!file.type.startsWith('image/')) {
-        this.snackBar.open('Please select an image file.', 'Close', { duration: 3000 });
-        return;
+    // Try Bitly shortening, fall back to using the URL directly
+    this.materialService.createBitlyLinkFromURL(urlControl.value).subscribe(
+      data => {
+        this.bitlyURL = data.link;
+        urlControl.reset();
+        urlControl.setValue(data.link);
+      },
+      error => {
+        // Bitly not configured or failed — use the URL directly
+        this.bitlyURL = urlControl.value;
+        urlControl.updateValueAndValidity();
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.customLogoUrl = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  public removeCustomLogo(): void {
-    this.customLogoUrl = null;
-  }
-
-  public saveOrganisationName(): void {
-    this.orgDropdownOpen = false;
-    this.snackBar.open('Organisation name updated.', 'Close', {
-      duration: 2000, horizontalPosition: 'center', verticalPosition: 'bottom',
-    });
+    );
   }
 
   public updateTags(event: any, data: string): void {
@@ -416,6 +387,28 @@ export class MaterialFormComponent implements OnInit {
 
   public onSelectFormat(value: string): void {
     this.selectedFormat = value;
+  }
+
+  get displayLogoPath(): string {
+    return this.customLogoUrl || this.logoPath;
+  }
+
+  public onLogoFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => this.customLogoUrl = reader.result as string;
+      reader.readAsDataURL(file);
+    }
+  }
+
+  public removeCustomLogo(): void {
+    this.customLogoUrl = null;
+  }
+
+  public saveOrganisationName(): void {
+    this.orgDropdownOpen = false;
+    this.snackBar.open('Organisation settings saved locally.', 'OK', { duration: 3000 });
   }
 
   public generatePdf(): void {

@@ -117,9 +117,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
     for (let i = 0; i < ingredients.length; i++) {
       this.ingredientArray.push(ingredients[i]);
     }
-    // @ts-ignore
-    this.ingredientArray.sort((a, b) => a.ingredient.name.localeCompare(b.ingredient.name))
-    console.log(this.ingredientArray)
+    this.ingredientArray.sort((a: any, b: any) => a.ingredient.name.localeCompare(b.ingredient.name));
   }
 
   onSelect(value): void {
