@@ -45,6 +45,12 @@ export class MaterialFormComponent implements OnInit {
   public saveStatus = SaveStatus;
   public user: User;
   public logoPath: string;
+  public organisationName: string;
+  public logoOptions: {path: string, name: string}[] = [
+    {path: 'assets/images/HvAlogo.png', name: 'Hogeschool van Amsterdam'},
+    {path: 'assets/images/LOGO.png', name: 'VisualM'}
+  ];
+  public showLogoDropdown = false;
   protected parentId: number = null;
   public materials: Material[] = [];
   public popupPublish:boolean = false;
@@ -71,6 +77,13 @@ export class MaterialFormComponent implements OnInit {
 
     this.configService.getAll().subscribe(config => {
       this.logoPath = config.logo_path;
+      this.organisationName = config.organisation;
+
+      // Add the configured logo if not already in the list
+      const exists = this.logoOptions.some(o => o.path === config.logo_path);
+      if (!exists) {
+        this.logoOptions.unshift({path: config.logo_path, name: config.organisation || 'Custom'});
+      }
     });
   }
 
@@ -136,7 +149,9 @@ export class MaterialFormComponent implements OnInit {
   }
 
   public onCreateLabelPublished() {
-    if (!this.materialForm.valid && this.materialForm.get('status').value === SaveStatus.PUBLISHED) {
+    this.materialForm.get('status').setValue(SaveStatus.PUBLISHED);
+
+    if (!this.materialForm.valid) {
       this.materialForm.markAllAsTouched();
 
       this.snackBar.open('Oops something went wrong :( Check all the fields for errors ', 'Close', {
@@ -145,11 +160,14 @@ export class MaterialFormComponent implements OnInit {
       });
 
       return;
-    } else if (this.materialForm.get('status').value === SaveStatus.DRAFT) {
-      this.onSubmit();
-    } else if (this.materialForm.valid && this.materialForm.get('status').value === SaveStatus.PUBLISHED) {
-      this.popupPublish = true;
     }
+
+    this.popupPublish = true;
+  }
+
+  public onSaveAsPdf(): void {
+    this.materialForm.get('status').setValue(SaveStatus.DRAFT);
+    this.onSubmit();
   }
 
   closePopup(): void {
@@ -251,7 +269,7 @@ export class MaterialFormComponent implements OnInit {
 
   public validURL(control: FormControl): { [s: string]: boolean } {
     if (!control.value) {
-      return {'urlIsEmpty': true};
+      return null;
     }
 
     const reg = '(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?';
@@ -259,14 +277,6 @@ export class MaterialFormComponent implements OnInit {
 
     if (!result) {
       return {'urlIsInvalid': true};
-    }
-
-    if (!this.bitlyURL) {
-      return {'bitlyNotCreated': true};
-    }
-
-    if (this.bitlyURL !== control.value) {
-      return {'valuesNotEqual': true};
     }
 
     return null;
@@ -291,18 +301,23 @@ export class MaterialFormComponent implements OnInit {
   public generateQRCode(): void {
     const urlControl: AbstractControl = this.materialForm.get('url');
 
-    // Check if URL is valid
-    if (!urlControl.errors.urlIsInvalid || !urlControl.errors.valuesNotEqual) {
-      this.materialService.createBitlyLinkFromURL(urlControl.value).subscribe(
-        data => {
-          this.bitlyURL = data.link;
-          urlControl.reset();
-          urlControl.setValue(data.link);
-        }
-      );
-    } else {
-      this.bitlyURL = null;
+    if (!urlControl.value || (urlControl.errors && urlControl.errors.urlIsInvalid)) {
+      return;
     }
+
+    // Try Bitly shortening, fall back to using the URL directly
+    this.materialService.createBitlyLinkFromURL(urlControl.value).subscribe(
+      data => {
+        this.bitlyURL = data.link;
+        urlControl.reset();
+        urlControl.setValue(data.link);
+      },
+      error => {
+        // Bitly not configured or failed — use the URL directly
+        this.bitlyURL = urlControl.value;
+        urlControl.updateValueAndValidity();
+      }
+    );
   }
 
   public updateTags(event: any, data: string): void {

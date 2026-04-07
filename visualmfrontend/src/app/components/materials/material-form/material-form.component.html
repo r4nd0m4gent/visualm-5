@@ -8,6 +8,7 @@
           <div class="col-md-4">
 
             <img src="{{this.logoPath}}" style="width: 10rem;" [ngClass]="{'is-hidden': bitlyURL }"/>
+            <p *ngIf="organisationName" class="mt-1 small" [ngClass]="{'is-hidden': bitlyURL }">{{ organisationName }}</p>
 
             <ngx-qrcode
               [ngClass]="{'is-hidden': !bitlyURL }"
@@ -37,16 +38,11 @@
             </div>
 
             <small class="block-help ml-2 smallTextError"
-                   *ngIf="!materialForm.get('url').valid && materialForm.get('url').errors.urlIsInvalid && materialForm.get('url').touched">
+                   *ngIf="!materialForm.get('url').valid && materialForm.get('url').errors?.urlIsInvalid && materialForm.get('url').touched">
               &bull; Given URL is invalid
             </small>
 
-            <small class="block-help ml-2 smallTextError"
-                   *ngIf="!materialForm.get('url').valid && materialForm.get('url').errors.bitlyNotCreated && materialForm.get('url').touched">
-              &bull; Please click on the Add URL button to generate a QR code.
-            </small>
-
-            <a matTooltip="Please provide a URL linking to the main reference you used to create this sample, URL has to start with http://" matTooltipPosition="after">
+            <a matTooltip="Please provide a URL linking to the main information source or reference you used to create this sample. URL has to start with http://" matTooltipPosition="after">
               <img src="assets/icons/information-outline.svg" height="18"/>
             </a>
           </div>
@@ -104,8 +100,17 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <img class="rounded float-right" style="width: 10rem;" alt="" src="{{this.logoPath}}"/>
+          <div class="col-md-4 text-right">
+            <img class="rounded float-right" style="width: 10rem; cursor: pointer;" alt="" src="{{this.logoPath}}" (click)="showLogoDropdown = !showLogoDropdown"/>
+            <br class="clear-right">
+            <div class="float-right clear-right logo-selector">
+              <span class="small" style="cursor: pointer;" (click)="showLogoDropdown = !showLogoDropdown">{{ organisationName }}&#9662;</span>
+              <div *ngIf="showLogoDropdown" class="logo-dropdown">
+                <div *ngFor="let option of logoOptions" class="logo-option" (click)="logoPath = option.path; organisationName = option.name; showLogoDropdown = false;">
+                  <img [src]="option.path" height="30" class="mr-2"/> {{ option.name }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -116,7 +121,7 @@
 
             <h2 class="h2">INGREDIENTS: [{{materialIngredients.length}}/{{maximumIngredients}}]
               <a
-                matTooltip="For each ingredient (grams) you have to add a new line by clicking on the + symbol. It is being save in grams so it can be easily configurated "
+                matTooltip="For each ingredient (gr/ml) you have to add a new line by clicking on the + symbol."
                 matTooltipPosition="after">
                 <img src="assets/icons/information-outline.svg" height="18"/>
               </a>
@@ -231,20 +236,14 @@
 
         <div class="row mt-4">
           <div class="col-md-6">
-            <a matTooltip="If you have a variation on an other Label, you can check the checkbox to search for it"
+            <a matTooltip="Please give credit to the recipe source by mentioning it here. Describe your alterations."
                matTooltipPosition="after">
               <img src="assets/icons/information-outline.svg" height="18"/>
             </a>
             <h2 class="h2">
               <div class="form-check outside-form">
 
-                REFERENCE & CHANGES:
-<!--                <label class="form-check-label" for="variation">-->
-
-<!--                  <input formControlName="variationOn" type="checkbox" class="form-check-input" id="variation"/>-->
-
-<!--                  <span class="checkmark"></span>-->
-<!--                </label>-->
+                CREDITS & ALTERATIONS:
               </div>
             </h2>
 
@@ -372,17 +371,14 @@
             <img height="18" src="assets/icons/close.svg">
             Cancel
           </button>
-            <div class="saveButtonFlex">
-          <button [disabled]="onSubmitDisable"  class="btn is-primary form-control saveBtnMat" id="save-btn" type="submit">
+          <button [disabled]="onSubmitDisable" class="btn is-primary form-control savePdfBtn" type="button" (click)="onSaveAsPdf()">
             <img height="18" src="assets/icons/content-save.svg">
-            Save as
+            Save as PDF label
           </button>
-          <select formControlName="status" class="custom-select selectBox ml-2">
-            <option value="{{ saveStatus.DRAFT }}" default>Draft</option>
-            <option *ngIf="authService.isAdmin()" value="{{ saveStatus.PUBLISHED }}">Published</option>
-            <option *ngIf="!authService.isAdmin()" value="{{ saveStatus.PUBLISHED }}">Submit for Approval</option>
-          </select>
-            </div>
+          <button [disabled]="onSubmitDisable" class="btn is-primary form-control submitBtn" id="save-btn" type="submit">
+            <img height="18" src="assets/icons/content-save.svg">
+            Submit
+          </button>
           </div>
         </div>
       </div>

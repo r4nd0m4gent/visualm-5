@@ -7,6 +7,7 @@
         <div class="row">
           <div class="col-md-4">
             <img src="{{this.logoPath}}" style="width: 10rem;" [ngClass]="{'is-hidden': bitlyURL }"/>
+            <p *ngIf="organisationName" class="mt-1 small" [ngClass]="{'is-hidden': bitlyURL }">{{ organisationName }}</p>
 
             <ngx-qrcode
               [ngClass]="{'is-hidden': !bitlyURL }"
@@ -104,8 +105,17 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <img class="rounded float-right" style="width: 10rem;" alt="" src="{{this.logoPath}}"/>
+          <div class="col-md-4 text-right">
+            <img class="rounded float-right" style="width: 10rem; cursor: pointer;" alt="" src="{{this.logoPath}}" (click)="showLogoDropdown = !showLogoDropdown"/>
+            <br class="clear-right">
+            <div class="float-right clear-right logo-selector">
+              <span class="small" style="cursor: pointer;" (click)="showLogoDropdown = !showLogoDropdown">{{ organisationName }}&#9662;</span>
+              <div *ngIf="showLogoDropdown" class="logo-dropdown">
+                <div *ngFor="let option of logoOptions" class="logo-option" (click)="logoPath = option.path; organisationName = option.name; showLogoDropdown = false;">
+                  <img [src]="option.path" height="30" class="mr-2"/> {{ option.name }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -230,18 +240,14 @@
 
         <div class="row mt-4">
           <div class="col-md-6">
-            <a matTooltip="If you have a variation on an other Label, you can check the checkbox to search for it"
+            <a matTooltip="Please give credit to the recipe source by mentioning it here. Describe your alterations."
                matTooltipPosition="after">
               <img src="assets/icons/information-outline.svg" height="18"/>
             </a>
 
             <h2 class="h2">
               <div class="form-check outside-form">
-                REFERENCE & CHANGES:
-<!--                <label class="form-check-label" for="variation">-->
-<!--                  <input formControlName="variationOn" type="checkbox" class="form-check-input" id="variation"/>-->
-<!--                  <span class="checkmark"></span>-->
-<!--                </label>-->
+                CREDITS & ALTERATIONS:
               </div>
             </h2>
 
@@ -393,20 +399,14 @@
               <img height="18" src="assets/icons/close.svg">
               Cancel
             </button>
-            <div class="saveButtonFlex">
-          <button [disabled]="onSubmitEdit" class="btn is-primary form-control saveBtnMat" id="save-btn" type="submit">
-            <img height="18" src="assets/icons/content-save.svg">
-            Save as
-          </button>
-          <select formControlName="status" class="custom-select selectBox ml-2">
-            <option value="{{ saveStatus.DRAFT }}" default
-                    [selected]="material?.getSaveStatus() == saveStatus.DRAFT">Draft
-            </option>
-            <option value="{{ saveStatus.PUBLISHED }}"
-                    [selected]="material?.getSaveStatus() == saveStatus.PUBLISHED">Published
-            </option>
-          </select>
-            </div>
+            <button [disabled]="onSubmitEdit" class="btn is-primary form-control savePdfBtn" type="button" (click)="onSaveAsPdf()">
+              <img height="18" src="assets/icons/content-save.svg">
+              Save as PDF label
+            </button>
+            <button [disabled]="onSubmitEdit" class="btn is-primary form-control submitBtn" id="save-btn" type="submit">
+              <img height="18" src="assets/icons/content-save.svg">
+              Submit
+            </button>
           </div>
         </div>
       </div>

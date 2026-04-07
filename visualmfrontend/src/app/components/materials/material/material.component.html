@@ -228,8 +228,8 @@
                 #{{ material?.getFormattedSequenceNumber() }}</h3>
 
               <div class="tags-container2 ">
-            <span class="tag ml-1" *ngFor="let tag of material?.getTags()">
-             | {{ materialTag[tag.name] }}
+            <span class="tag ml-1" *ngFor="let tag of material?.getTags(); let i = index">
+             <ng-container *ngIf="i > 0"> | </ng-container>{{ materialTag[tag.name] }}
             </span>
               </div>
             </div>
