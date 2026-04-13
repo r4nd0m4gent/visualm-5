@@ -6,7 +6,7 @@ set -e
 # Usage: bash setup-ssl.sh your-domain.com [your-email@example.com]
 # ============================================================
 
-DOMAIN=${1:-samplemanagementtool.org}
+DOMAIN=${1:-ecomaterialscollective.org}
 EMAIL=${2:-admin@$DOMAIN}
 
 echo "=== Setting up SSL for $DOMAIN ==="

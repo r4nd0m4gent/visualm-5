@@ -7,7 +7,7 @@ This tool makes it easier to keep track of the new materials and view its inform
 
 <p align="center">
   <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" style="font-size: 20px; font-weight: bold">License</a> &bull;
-  <a href="https://samplemanagementtool.org/#/about" style="font-size: 20px; font-weight: bold">About</a>
+  <a href="https://ecomaterialscollective.org/#/about" style="font-size: 20px; font-weight: bold">About</a>
   <br><br>
 </p>
 
