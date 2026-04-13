@@ -140,3 +140,4 @@ visualmserver/src/main/resources/keystore/*
 # Deployment secrets
 .env
 nginx/certbot/
+upload-images.sh

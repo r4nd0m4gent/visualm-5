@@ -189,3 +189,7 @@ INSERT INTO `material_has_ingredient` (`sequence_number`,`id`,`amount`) VALUES (
 INSERT INTO `app_config` (`key_name`, `value`) VALUES ('email_suffix', 'hva.nl');
 INSERT INTO `app_config` (`key_name`, `value`) VALUES ('organisation', 'Github');
 INSERT INTO `app_config` (`key_name`, `value`) VALUES ('logo_path', 'assets/images/HvAlogo.png');
+
+-- Organisation admins
+INSERT INTO `org_admin` (`id`, `email`, `organisation`, `logo_path`, `access_token`) VALUES (1, 'f.sollitto@hva.nl', 'Hogeschool van Amsterdam', 'assets/images/HvAlogo.png', '25220973-0ff9-4209-8140-9eeab4a4addd');
+INSERT INTO `org_admin` (`id`, `email`, `organisation`, `logo_path`, `access_token`) VALUES (2, 's.j.edens@hva.nl', 'Hogeschool van Amsterdam', 'assets/images/HvAlogo.png', '209fa082-214d-4cb7-90dd-f144ff4a7563');
