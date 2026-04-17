@@ -15,6 +15,7 @@ import {AuthGuard} from './guards/auth.guard';
 import {AuthAdminGuard} from './guards/auth-admin.guard';
 import {ErrorComponent} from './components/error/error.component';
 import {AboutComponent} from './components/about/about.component';
+import {OrgAdminPanelComponent} from './components/org-admin-panel/org-admin-panel.component';
 
 const routes: Routes = [
   {path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -28,6 +29,7 @@ const routes: Routes = [
   {path: 'verify-email', component: MailVerificationComponent},
   {path: 'materials/edit/:sequence_number', component: EditMaterialFormComponent},
   {path: 'about', component: AboutComponent},
+  {path: 'org-admin/access/:token', component: OrgAdminPanelComponent},
   {path: 'materials/edit/:sequence_number', component: EditMaterialFormComponent, canActivate: [AuthGuard]},
   {path: '**', component: ErrorComponent},
 ];

@@ -1,0 +1,436 @@
+<div class="org-admin-container">
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center" style="padding: 80px;">
+    <p>Validating access...</p>
+  </div>
+
+  <!-- Access denied -->
+  <div *ngIf="accessDenied && !loading" class="text-center" style="padding: 80px;">
+    <h2>Access Denied</h2>
+    <p>The private admin link is invalid or has expired.</p>
+  </div>
+
+  <!-- Admin panel -->
+  <div *ngIf="orgAdmin && !loading">
+    <div class="panel-header">
+      <h2>Admin Panel — {{ orgAdmin.organisation }}</h2>
+      <p>Logged in as <strong>{{ orgAdmin.email }}</strong></p>
+    </div>
+
+    <mat-tab-group mat-stretch-tabs>
+
+      <!-- ========== Pending Approval ========== -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Pending Approval
+          <span *ngIf="pendingMaterials.length > 0" class="badge-count">{{ pendingMaterials.length }}</span>
+        </ng-template>
+
+        <div class="admin-data">
+          <mat-table #sortPending="matSort" [dataSource]="pendingDataSource" matSort>
+            <ng-container matColumnDef="sequenceNumber">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>ID</mat-header-cell>
+              <mat-cell *matCellDef="let row">#{{ row.sequenceNumber }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+              <mat-cell class="text-uppercase" *matCellDef="let row">{{ row.name }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="creationDate">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Created At</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.creationDate }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <mat-header-cell *matHeaderCellDef>Author</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.user?.firstname }} {{ row.user?.lastname }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="action">
+              <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+              <mat-cell *matCellDef="let element">
+                <a mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
+                  <img src="assets/icons/eye.svg" height="24">
+                </a> |
+                <a mat-icon-button matTooltip="Approve and publish" (click)="onApprove(element)" style="cursor: pointer;">
+                  <img src="assets/icons/done.svg" height="24">
+                </a> |
+                <a mat-icon-button matTooltip="Reject (return to draft)" (click)="onReject(element)" style="cursor: pointer;">
+                  <img src="assets/icons/close_blue.svg" height="24">
+                </a>
+              </mat-cell>
+            </ng-container>
+            <mat-header-row *matHeaderRowDef="pendingColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: pendingColumns;"></mat-row>
+          </mat-table>
+
+          <div *ngIf="pendingMaterials.length === 0" style="text-align: center; padding: 40px; color: #888;">
+            No labels pending approval.
+          </div>
+          <mat-paginator #paginatorPending [pageSizeOptions]="[10, 25, 50]"></mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- ========== Label ========== -->
+      <mat-tab>
+        <ng-template mat-tab-label>Label</ng-template>
+
+        <div class="searchGroup">
+          <input (keyup)="applyFilterMaterial($event)" class="form-control searchBox" type="text" placeholder="Search">
+        </div>
+
+        <div class="admin-data">
+          <mat-table #sortMaterial="matSort" [dataSource]="materialDataSource" matSort>
+            <ng-container matColumnDef="sequenceNumber">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>ID</mat-header-cell>
+              <mat-cell *matCellDef="let row">#{{ row.sequenceNumber }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+              <mat-cell class="text-uppercase" *matCellDef="let row">{{ row.name }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="saveStatus">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.saveStatus }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="creationDate">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Created At</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.creationDate }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <mat-header-cell *matHeaderCellDef>Author</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.user?.firstname }} {{ row.user?.lastname }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="action">
+              <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+              <mat-cell *matCellDef="let element">
+                <a mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
+                  <img src="assets/icons/eye.svg" height="24">
+                </a>
+              </mat-cell>
+            </ng-container>
+            <mat-header-row *matHeaderRowDef="materialColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: materialColumns;"></mat-row>
+          </mat-table>
+          <mat-paginator #paginatorMaterial [pageSizeOptions]="[100, 150, 200]"></mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- ========== User ========== -->
+      <mat-tab>
+        <ng-template mat-tab-label>User</ng-template>
+
+        <div class="searchGroup">
+          <input (keyup)="applyFilterUser($event)" class="form-control searchBox" type="text" placeholder="Search">
+        </div>
+
+        <div class="admin-data">
+          <mat-table #sortUser="matSort" [dataSource]="userDataSource" matSort>
+            <ng-container matColumnDef="id">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>ID</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.id }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="email">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>E-mail</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.email }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="firstname">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.firstname }} {{ row.lastname }}</mat-cell>
+            </ng-container>
+            <mat-header-row *matHeaderRowDef="userColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: userColumns;"></mat-row>
+          </mat-table>
+          <mat-paginator #paginatorUser [pageSizeOptions]="[10, 25, 100]"></mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- ========== Reports ========== -->
+      <mat-tab>
+        <ng-template mat-tab-label>Reports</ng-template>
+
+        <div class="searchGroup">
+          <input (keyup)="applyFilterReport($event)" class="form-control searchBox" type="text" placeholder="Search">
+        </div>
+
+        <div class="admin-data">
+          <mat-table #sortReport="matSort" [dataSource]="reportDataSource" matSort>
+            <ng-container matColumnDef="id">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Report ID</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.id }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="message">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Report Message</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.reportMessage }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Reported By</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.user?.firstname }} {{ row.user?.lastname }}</mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="solved">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <p class="solvedText" *ngIf="row.solved">Solved</p>
+                <p class="solvedText" *ngIf="!row.solved">Not solved</p>
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="action">
+              <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+              <mat-cell *matCellDef="let element">
+                <a mat-icon-button matTooltip="View reported material"
+                   routerLink="/material/{{ element.material?.sequenceNumber }}">
+                  <img src="assets/icons/eye.svg" height="24">
+                </a> |
+                <a *ngIf="!element.solved" mat-icon-button matTooltip="Mark as solved" (click)="onReportToggle(element)" style="cursor: pointer;">
+                  <img src="assets/icons/done.svg" height="24">
+                </a>
+                <a *ngIf="element.solved" mat-icon-button matTooltip="Mark as not solved" (click)="onReportToggle(element)" style="cursor: pointer;">
+                  <img src="assets/icons/close_blue.svg">
+                </a>
+              </mat-cell>
+            </ng-container>
+            <mat-header-row *matHeaderRowDef="reportColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: reportColumns;"></mat-row>
+          </mat-table>
+          <mat-paginator #paginatorReport [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- ========== Settings ========== -->
+      <mat-tab>
+        <ng-template mat-tab-label>Settings</ng-template>
+
+        <div class="admin-data mt-4 config-form-container small-padding">
+          <form (keydown.enter)="$event.preventDefault()" #settingsForm="ngForm" (ngSubmit)="onSettingsSave()">
+            <div class="form-container">
+              <div class="form-group">
+                <label for="org-name">
+                  Organisation
+                  <a matTooltip="Your organisation name" matTooltipPosition="after">
+                    <img src="assets/icons/information-outline.svg" height="18"/>
+                  </a>
+                </label>
+                <input type="text" class="form-control config-input-width" id="org-name" placeholder="Organisation" required
+                       [(ngModel)]="orgAdmin.organisation" name="organisation">
+              </div>
+              <div class="form-group">
+                <label for="org-logo">
+                  Organisation Logo
+                  <a matTooltip="Upload an image for your organisation logo" matTooltipPosition="after">
+                    <img src="assets/icons/information-outline.svg" height="18"/>
+                  </a>
+                </label>
+                <div class="logo-upload-area">
+                  <img *ngIf="orgAdmin.logoPath" [src]="orgAdmin.logoPath" alt="Current logo" class="logo-preview"/>
+                  <label class="btn btn-sm btn-outline-secondary rounded-pill mt-2">
+                    Upload new logo
+                    <input type="file" accept="image/*" (change)="onLogoFileSelected($event)" hidden/>
+                  </label>
+                </div>
+              </div>
+              <div class="text-center">
+                <button class="btn btn-primary form-control popupUserBtn" [disabled]="!settingsForm.form.valid">
+                  <img height="20" src="assets/icons/content-save.svg" alt="Save"> Save
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- ========== Label Templates ========== -->
+      <mat-tab>
+        <ng-template mat-tab-label>Label Templates</ng-template>
+
+        <div class="template-editor-container admin-data mt-4">
+          <div class="template-sidebar">
+            <h4>Templates</h4>
+            <div class="template-list">
+              <div *ngFor="let tpl of templates"
+                   class="template-list-item"
+                   [class.active]="selectedTemplate?.id === tpl.id"
+                   (click)="selectTemplate(tpl)">
+                <span class="template-color-dot" [style.background]="tpl.primaryColor"></span>
+                {{ tpl.name }}
+                <span class="template-variant-badge">{{ tpl.layoutVariant }}</span>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary mt-2" (click)="onNewTemplate()" style="width: 100%;">
+              + New Template
+            </button>
+          </div>
+
+          <div class="template-main" *ngIf="editingTemplate">
+            <div class="template-form-and-preview">
+              <!-- Form -->
+              <div class="template-form">
+                <h4>{{ editingTemplate.id ? 'Edit' : 'New' }} Template</h4>
+
+                <div class="form-group">
+                  <label>Name</label>
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="editingTemplate.name" placeholder="Template name">
+                </div>
+
+                <div class="form-group">
+                  <label>Layout Variant</label>
+                  <select class="form-control form-control-sm" [(ngModel)]="editingTemplate.layoutVariant">
+                    <option *ngFor="let v of layoutVariants" [value]="v">{{ v }}</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label>Primary Color</label>
+                    <input type="color" class="form-control form-control-sm color-input" [(ngModel)]="editingTemplate.primaryColor">
+                  </div>
+                  <div class="form-group col-6">
+                    <label>Secondary Color</label>
+                    <input type="color" class="form-control form-control-sm color-input" [(ngModel)]="editingTemplate.secondaryColor">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label>Background</label>
+                    <input type="color" class="form-control form-control-sm color-input" [(ngModel)]="editingTemplate.backgroundColor">
+                  </div>
+                  <div class="form-group col-6">
+                    <label>Border Color</label>
+                    <input type="color" class="form-control form-control-sm color-input" [(ngModel)]="editingTemplate.borderColor">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Font Family</label>
+                  <select class="form-control form-control-sm" [(ngModel)]="editingTemplate.fontFamily">
+                    <option *ngFor="let f of fontFamilies" [value]="f">{{ f }}</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label>Title Font Size</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="editingTemplate.titleFontSize" placeholder="27pt">
+                  </div>
+                  <div class="form-group col-6">
+                    <label>Body Font Size</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="editingTemplate.bodyFontSize" placeholder="17pt">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label>Border Style</label>
+                    <select class="form-control form-control-sm" [(ngModel)]="editingTemplate.borderStyle">
+                      <option *ngFor="let b of borderStyles" [value]="b">{{ b }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-6">
+                    <label>Logo Position</label>
+                    <select class="form-control form-control-sm" [(ngModel)]="editingTemplate.logoPosition">
+                      <option *ngFor="let p of logoPositions" [value]="p">{{ p }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input type="checkbox" class="form-check-input" id="showQr" [(ngModel)]="editingTemplate.showQrCode">
+                  <label class="form-check-label" for="showQr">Show QR Code</label>
+                </div>
+
+                <div class="form-group">
+                  <label>Header Text (optional tagline)</label>
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="editingTemplate.headerText" placeholder="e.g. Eco Materials Collective">
+                </div>
+
+                <div class="template-actions">
+                  <button class="btn btn-sm btn-primary" (click)="onTemplateSave()">
+                    <img height="16" src="assets/icons/content-save.svg" alt="Save"> Save
+                  </button>
+                  <button *ngIf="editingTemplate.id" class="btn btn-sm btn-danger ml-2" (click)="onDeleteTemplate(editingTemplate)">
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live preview -->
+              <div class="template-preview">
+                <h4>Preview</h4>
+                <div class="preview-label"
+                     [style.background]="editingTemplate.backgroundColor"
+                     [style.fontFamily]="editingTemplate.fontFamily"
+                     [style.border]="'2px ' + editingTemplate.borderStyle + ' ' + editingTemplate.borderColor">
+
+                  <div *ngIf="editingTemplate.headerText" class="preview-header"
+                       [style.color]="editingTemplate.primaryColor">
+                    {{ editingTemplate.headerText }}
+                  </div>
+
+                  <!-- Flipped title (classic/modern) -->
+                  <div class="preview-flipped-title"
+                       *ngIf="editingTemplate.layoutVariant !== 'minimal'"
+                       [style.color]="editingTemplate.secondaryColor"
+                       [style.fontSize]="editingTemplate.titleFontSize">
+                    SAMPLE MATERIAL
+                  </div>
+
+                  <div class="preview-separator"
+                       [style.borderColor]="editingTemplate.borderColor"
+                       [style.borderStyle]="editingTemplate.borderStyle"></div>
+
+                  <!-- Body row: QR / Title / Logo -->
+                  <div class="preview-body-row"
+                       [class.reverse]="editingTemplate.logoPosition === 'left'">
+                    <div class="preview-qr" *ngIf="editingTemplate.showQrCode">
+                      <div class="qr-placeholder">[QR]</div>
+                    </div>
+                    <div class="preview-center"
+                         [style.color]="editingTemplate.primaryColor"
+                         [style.fontSize]="editingTemplate.titleFontSize">
+                      <div class="preview-title">SAMPLE MATERIAL</div>
+                      <div class="preview-type" [style.fontSize]="editingTemplate.bodyFontSize">Plant Based</div>
+                      <div class="preview-tags" [style.fontSize]="'10pt'">VEGAN | RENEWABLE</div>
+                    </div>
+                    <div class="preview-logo">
+                      <img *ngIf="orgAdmin?.logoPath" [src]="orgAdmin.logoPath" alt="Logo" class="preview-logo-img"/>
+                      <span *ngIf="!orgAdmin?.logoPath">[Logo]</span>
+                    </div>
+                  </div>
+
+                  <hr [style.borderColor]="editingTemplate.borderColor">
+
+                  <!-- Content -->
+                  <div class="preview-content"
+                       [style.color]="editingTemplate.secondaryColor"
+                       [style.fontSize]="editingTemplate.bodyFontSize">
+                    <div class="preview-section">
+                      <strong [style.color]="editingTemplate.primaryColor">INGREDIENTS:</strong>
+                      <div>Water 150ml</div>
+                      <div>Gelatine 12gr</div>
+                    </div>
+                    <div class="preview-section" *ngIf="editingTemplate.layoutVariant !== 'minimal'">
+                      <strong [style.color]="editingTemplate.primaryColor">MAKING PROCEDURE:</strong>
+                      <div>1. Preparation</div>
+                      <div>2. Mixing ingredients</div>
+                    </div>
+                  </div>
+
+                  <div class="preview-footer"
+                       [style.color]="editingTemplate.secondaryColor">
+                    Maker: John Doe - 17-04-2026
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="template-main" *ngIf="!editingTemplate">
+            <div class="template-empty">
+              <p>Select a template from the list or create a new one.</p>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+</div>

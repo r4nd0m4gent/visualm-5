@@ -38,6 +38,25 @@
   border: 1px solid #ddd;
   border-radius: 10px;
   background: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.org-option {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.org-option:hover {
+  background: #f0f0f0;
+}
+.org-option-logo {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+  margin-right: 8px;
 }
 .org-upload-btn {
   cursor: pointer;

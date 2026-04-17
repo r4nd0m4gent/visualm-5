@@ -483,17 +483,19 @@
           </div>
           <div class="form-group">
             <label for="organisation-logo">
-              Organisation Logo URL
-              <a matTooltip="A path (asset/images/) to an image that will be used for label form and PDF" matTooltipPosition="after">
+              Organisation Logo
+              <a matTooltip="Upload an image that will be used for label form and PDF" matTooltipPosition="after">
                 <img src="assets/icons/information-outline.svg" height="18"/>
               </a>
             </label>
-            <input type="text" class="form-control config-input-width" id="organisation-logo" placeholder="URL" required
-                   [(ngModel)]="config.logo_path" name="logo_path">
-            <small class="block-help ml-2"
-                   *ngIf="configForm.form.get('logo_path')?.touched && configForm.form.get('logo_path')?.invalid">
-              &bull; Logo path field is required
-            </small>
+            <div class="logo-upload-area">
+              <img *ngIf="config.logo_path" [src]="config.logo_path" alt="Current logo" class="logo-preview"/>
+              <label class="btn btn-sm btn-outline-secondary rounded-pill mt-2">
+                Upload new logo
+                <input type="file" accept="image/*" (change)="onLogoFileSelected($event)" hidden/>
+              </label>
+              <small *ngIf="config.logo_path" class="d-block text-muted mt-1">{{ config.logo_path }}</small>
+            </div>
           </div>
 
           <div class="text-center">

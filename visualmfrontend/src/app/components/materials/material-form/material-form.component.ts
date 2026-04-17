@@ -48,8 +48,9 @@ export class MaterialFormComponent implements OnInit {
   public user: User;
   public logoPath: string;
   public organisationName: string;
-  public customLogoUrl: string = null;
   public orgDropdownOpen = false;
+  public organisations: {organisation: string, logoPath: string}[] = [];
+  public labelTemplate: any = null;
   protected parentId: number = null;
   public materials: Material[] = [];
   public popupPublish:boolean = false;
@@ -81,6 +82,16 @@ export class MaterialFormComponent implements OnInit {
     this.configService.getAll().subscribe(config => {
       this.logoPath = config.logo_path;
       this.organisationName = config.organisation;
+      // Load template for the default organisation
+      this.configService.getTemplatesByOrganisation(config.organisation).subscribe(templates => {
+        if (templates && templates.length > 0) {
+          this.labelTemplate = templates[0];
+        }
+      });
+    });
+
+    this.configService.getOrganisations().subscribe(orgs => {
+      this.organisations = orgs;
     });
   }
 
@@ -390,25 +401,17 @@ export class MaterialFormComponent implements OnInit {
   }
 
   get displayLogoPath(): string {
-    return this.customLogoUrl || this.logoPath;
+    return this.logoPath;
   }
 
-  public onLogoFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => this.customLogoUrl = reader.result as string;
-      reader.readAsDataURL(file);
-    }
-  }
-
-  public removeCustomLogo(): void {
-    this.customLogoUrl = null;
+  public onOrgSelected(org: {organisation: string, logoPath: string}): void {
+    this.organisationName = org.organisation;
+    this.logoPath = org.logoPath;
+    this.orgDropdownOpen = false;
   }
 
   public saveOrganisationName(): void {
     this.orgDropdownOpen = false;
-    this.snackBar.open('Organisation settings saved locally.', 'OK', { duration: 3000 });
   }
 
   public generatePdf(): void {

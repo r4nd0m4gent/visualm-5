@@ -111,14 +111,10 @@
                 <span class="org-dropdown-arrow">&#9662;</span>
               </div>
               <div class="org-dropdown" *ngIf="orgDropdownOpen">
-                <input class="form-control form-control-sm rounded-pill mb-2" type="text" placeholder="Organisation name"
-                       [(ngModel)]="organisationName" [ngModelOptions]="{standalone: true}" maxlength="40"/>
-                <label class="btn btn-sm btn-outline-secondary rounded-pill org-upload-btn mb-1">
-                  Upload logo
-                  <input type="file" accept="image/*" (change)="onLogoFileSelected($event)" hidden/>
-                </label>
-                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill ml-1"
-                        (click)="saveOrganisationName()">Save</button>
+                <div *ngFor="let org of organisations" class="org-option" (click)="onOrgSelected(org)">
+                  <img *ngIf="org.logoPath" [src]="org.logoPath" class="org-option-logo" alt=""/>
+                  <span>{{ org.organisation }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -442,23 +438,35 @@
 <div class="sammie" id="pdfLabelForm">
   <div class="container-fluid MaterialPDF">
     <div class="pt-5">
-      <div class="shadow bg-light p-3 outerMaterialPDF">
+      <div class="shadow bg-light p-3 outerMaterialPDF"
+           [style.background]="labelTemplate?.backgroundColor || 'white'"
+           [style.fontFamily]="labelTemplate?.fontFamily || 'Calibri Light, Roboto Light, sans-serif'"
+           [style.border]="labelTemplate && labelTemplate.borderStyle !== 'none' ? ('2px ' + labelTemplate.borderStyle + ' ' + labelTemplate.borderColor) : null">
 
-        <!-- Top Title (flipped) -->
-        <div class="text-center flippedTitle">
-          <h1 class="text-uppercase name">{{ materialForm.get('title').value || 'Untitled' }}</h1>
-          <h3 class="type">{{ materialType[materialForm.get('type').value] }}</h3>
-          <h3 class="Snumber">DRAFT</h3>
+        <!-- Header Text (from template) -->
+        <div *ngIf="labelTemplate?.headerText" class="text-center"
+             [style.color]="labelTemplate?.primaryColor"
+             style="letter-spacing: 3px; font-size: 12pt; font-weight: 600; margin-top: 10px;">
+          {{ labelTemplate.headerText }}
+        </div>
+
+        <!-- Top Title (flipped) — hidden for minimal layout -->
+        <div class="text-center flippedTitle" *ngIf="labelTemplate?.layoutVariant !== 'minimal'">
+          <h1 class="text-uppercase name"
+              [style.color]="labelTemplate?.primaryColor || 'black'"
+              [style.fontSize]="labelTemplate?.titleFontSize || '27pt'">{{ materialForm.get('title').value || 'Untitled' }}</h1>
+          <h3 class="type" [style.color]="labelTemplate?.secondaryColor || '#333'">{{ materialType[materialForm.get('type').value] }}</h3>
+          <h3 class="Snumber" [style.color]="labelTemplate?.secondaryColor || '#333'">DRAFT</h3>
         </div>
 
         <!-- border -->
-        <div class="borderTop"></div>
-        <div class="borderCenter"></div>
+        <div class="borderTop" [style.borderColor]="labelTemplate && labelTemplate.borderStyle !== 'none' ? labelTemplate.borderColor : null"></div>
+        <div class="borderCenter" [style.borderColor]="labelTemplate && labelTemplate.borderStyle !== 'none' ? labelTemplate.borderColor : null"></div>
 
         <!-- PDF Body -->
         <div class="pdfText">
-          <div class="row">
-            <div class="col-md-4">
+          <div class="row" [class.flex-row-reverse]="labelTemplate?.logoPosition === 'left'">
+            <div class="col-md-4" *ngIf="labelTemplate?.showQrCode !== false">
               <ngx-qrcode
                 [ngClass]="{'is-hidden': !bitlyURL }"
                 [elementType]="elementType"
@@ -468,12 +476,16 @@
               <label class="label m-2">{{ bitlyURL }}</label>
             </div>
 
-            <div class="col-md-4 text-center">
-              <h1 class="nameTitle text-uppercase">{{ materialForm.get('title').value || 'Untitled' }}</h1>
-              <h3 class="type">{{ materialType[materialForm.get('type').value] }}</h3>
-              <h3 class="Snumber">DRAFT</h3>
+            <div class="text-center" [class.col-md-4]="labelTemplate?.showQrCode !== false"
+                 [class.col-md-6]="labelTemplate?.showQrCode === false">
+              <h1 class="nameTitle text-uppercase"
+                  [style.color]="labelTemplate?.primaryColor || 'black'"
+                  [style.fontSize]="labelTemplate?.titleFontSize || '27pt'">{{ materialForm.get('title').value || 'Untitled' }}</h1>
+              <h3 class="type" [style.color]="labelTemplate?.secondaryColor || '#333'">{{ materialType[materialForm.get('type').value] }}</h3>
+              <h3 class="Snumber" [style.color]="labelTemplate?.secondaryColor || '#333'">DRAFT</h3>
               <div class="tags-container2">
-                <span class="tag ml-1" *ngFor="let tag of tags">| {{ tag }}</span>
+                <span class="tag ml-1" *ngFor="let tag of tags"
+                      [style.color]="labelTemplate?.secondaryColor || '#333'">| {{ tag }}</span>
               </div>
             </div>
 
@@ -483,41 +495,55 @@
             </div>
           </div>
 
-          <hr/>
+          <hr [style.borderColor]="labelTemplate && labelTemplate.borderStyle !== 'none' ? labelTemplate.borderColor : null"
+              [style.borderStyle]="labelTemplate && labelTemplate.borderStyle !== 'none' ? labelTemplate.borderStyle : null"/>
 
           <div class="pdfInfo">
             <div class="stepsIngredients">
               <div class="IngredientsDiv">
-                <h1 class="title">INGREDIENTS:</h1>
+                <h1 class="title"
+                    [style.color]="labelTemplate?.primaryColor || 'black'">INGREDIENTS:</h1>
                 <div class="ingredient-container mt-3">
                   <ul>
-                    <li *ngFor="let mi of materialIngredients" class="mb-1 info ingredient">
+                    <li *ngFor="let mi of materialIngredients" class="mb-1 info ingredient"
+                        [style.color]="labelTemplate?.secondaryColor || 'black'"
+                        [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
                       {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() || 'gr' }}
                     </li>
                   </ul>
                 </div>
 
                 <div class="changes mt-4">
-                  <h1 class="title">REFERENCE & CHANGES:</h1>
+                  <h1 class="title"
+                      [style.color]="labelTemplate?.primaryColor || 'black'">REFERENCE & CHANGES:</h1>
                   <div class="row">
-                    <p class="info changeWho" *ngIf="!materialForm.get('variationOn').value">
+                    <p class="info changeWho" *ngIf="!materialForm.get('variationOn').value"
+                       [style.color]="labelTemplate?.secondaryColor || 'black'"
+                       [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
                       By {{ materialForm.get('referenceAuthor').value }} - {{ materialForm.get('referenceTitle').value }} - {{ materialForm.get('referenceYear').value }}
                     </p>
-                    <p class="info changeWho" *ngIf="materialForm.get('variationOn').value">
+                    <p class="info changeWho" *ngIf="materialForm.get('variationOn').value"
+                       [style.color]="labelTemplate?.secondaryColor || 'black'"
+                       [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
                       {{ recipeTitle }} {{ recipeAuthor }}
                     </p>
-                    <p class="info word-break changesTekst">
+                    <p class="info word-break changesTekst"
+                       [style.color]="labelTemplate?.secondaryColor || 'black'"
+                       [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
                       {{ materialForm.get('changes').value }}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div class="ProcedureDiv">
-                <h1 class="title">MAKING PROCEDURE:</h1>
+              <div class="ProcedureDiv" *ngIf="labelTemplate?.layoutVariant !== 'minimal'">
+                <h1 class="title"
+                    [style.color]="labelTemplate?.primaryColor || 'black'">MAKING PROCEDURE:</h1>
                 <div class="procedure-container mt-2">
                   <ul>
-                    <li *ngFor="let stepItem of steps" class="mb-1 info procedure word-break">
+                    <li *ngFor="let stepItem of steps" class="mb-1 info procedure word-break"
+                        [style.color]="labelTemplate?.secondaryColor || 'black'"
+                        [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
                       {{ stepItem }}
                     </li>
                   </ul>
@@ -531,7 +557,7 @@
       <div class="row">
         <div class="col-md-12 text-center makerr">
           <hr class="marker markerBottom"/>
-          <p class="maker">Maker: {{ user?.getFirstname() + " " + user?.getLastname() }}
+          <p class="maker" [style.color]="labelTemplate?.secondaryColor || 'black'">Maker: {{ user?.getFirstname() + " " + user?.getLastname() }}
             - {{ creationDate | date:'dd-MM-yyyy' }} - {{ user?.getEmail() }}
             <span *ngIf="materialForm.get('referenceEmail').value"> - {{ materialForm.get('referenceEmail').value }}</span></p>
         </div>

@@ -46,12 +46,19 @@ export class MaterialComponent implements OnInit, OnDestroy {
   public correctionLevel = NgxQrcodeErrorCorrectionLevels.HIGH;
   canEdit = true;
   public logoPath: string;
+  public labelTemplate: any = null;
 
   constructor(private router: Router, private materialService: MaterialsService, private activatedRoute: ActivatedRoute,
               private authService: AuthService, private snackBar: MatSnackBar, private reportService: ReportService,
               private configService: AppConfigService) {
     this.configService.getAll().subscribe(config => {
       this.logoPath = config.logo_path;
+      // Load template for the default organisation
+      this.configService.getTemplatesByOrganisation(config.organisation).subscribe(templates => {
+        if (templates && templates.length > 0) {
+          this.labelTemplate = templates[0];
+        }
+      });
     });
   }
 

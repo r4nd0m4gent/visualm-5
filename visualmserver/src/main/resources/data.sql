@@ -193,3 +193,14 @@ INSERT INTO `app_config` (`key_name`, `value`) VALUES ('logo_path', 'assets/imag
 -- Organisation admins
 INSERT INTO `org_admin` (`id`, `email`, `organisation`, `logo_path`, `access_token`) VALUES (1, 'f.sollitto@hva.nl', 'Hogeschool van Amsterdam', 'assets/images/HvAlogo.png', '25220973-0ff9-4209-8140-9eeab4a4addd');
 INSERT INTO `org_admin` (`id`, `email`, `organisation`, `logo_path`, `access_token`) VALUES (2, 's.j.edens@hva.nl', 'Hogeschool van Amsterdam', 'assets/images/HvAlogo.png', '209fa082-214d-4cb7-90dd-f144ff4a7563');
+INSERT INTO `org_admin` (`id`, `email`, `organisation`, `logo_path`, `access_token`) VALUES (3, 'eldylazaro@colorado.edu', 'University of Colorado', 'assets/images/HvAlogo.png', 'e4f0bf74-218b-44b9-bbf5-c0d41ec8d8e1');
+
+-- Default label templates (one per org admin)
+INSERT INTO `label_template` (`id`, `name`, `primary_color`, `secondary_color`, `background_color`, `font_family`, `title_font_size`, `body_font_size`, `border_style`, `border_color`, `logo_position`, `show_qr_code`, `header_text`, `layout_variant`, `org_admin_id`)
+VALUES (1, 'Classic', '#000000', '#333333', '#ffffff', 'Calibri Light, Roboto Light, sans-serif', '27pt', '17pt', 'none', '#000000', 'right', true, '', 'classic', 1);
+
+INSERT INTO `label_template` (`id`, `name`, `primary_color`, `secondary_color`, `background_color`, `font_family`, `title_font_size`, `body_font_size`, `border_style`, `border_color`, `logo_position`, `show_qr_code`, `header_text`, `layout_variant`, `org_admin_id`)
+VALUES (2, 'Classic', '#000000', '#333333', '#ffffff', 'Calibri Light, Roboto Light, sans-serif', '27pt', '17pt', 'none', '#000000', 'right', true, '', 'classic', 2);
+
+INSERT INTO `label_template` (`id`, `name`, `primary_color`, `secondary_color`, `background_color`, `font_family`, `title_font_size`, `body_font_size`, `border_style`, `border_color`, `logo_position`, `show_qr_code`, `header_text`, `layout_variant`, `org_admin_id`)
+VALUES (3, 'Classic', '#000000', '#333333', '#ffffff', 'Calibri Light, Roboto Light, sans-serif', '27pt', '17pt', 'none', '#000000', 'right', true, '', 'classic', 3);

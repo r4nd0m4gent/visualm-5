@@ -23,4 +23,15 @@ export class AppConfigService {
   public getAll(): Observable<any> {
     return this.http.get(`${AppConfigService.BASE_URL}`).pipe(share());
   }
+
+  public getOrganisations(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.backend_url}/org-admin/organisations`).pipe(share());
+  }
+
+  public getTemplatesByOrganisation(organisation: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${environment.backend_url}/org-admin/templates/by-organisation`,
+      {params: {organisation}}
+    ).pipe(share());
+  }
 }

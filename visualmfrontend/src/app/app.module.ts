@@ -38,6 +38,7 @@ import {AuthInterceptor} from './interceptors/auth.interceptor';
 import {MaterialsService} from './services/materials.service';
 import { ErrorComponent } from './components/error/error.component';
 import {AboutComponent} from './components/about/about.component';
+import {OrgAdminPanelComponent} from './components/org-admin-panel/org-admin-panel.component';
 import {MatExpansionModule} from '@angular/material/expansion';
 
 @NgModule({
@@ -59,7 +60,8 @@ import {MatExpansionModule} from '@angular/material/expansion';
     EditMaterialFormComponent,
     MailVerificationComponent,
     ErrorComponent,
-    AboutComponent
+    AboutComponent,
+    OrgAdminPanelComponent
   ],
   imports: [
     BrowserModule,

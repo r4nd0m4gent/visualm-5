@@ -412,6 +412,17 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  onLogoFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.config.logo_path = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   exportLabels(): void {
     let date = (new Date()).toLocaleDateString('nl-NL');
 
