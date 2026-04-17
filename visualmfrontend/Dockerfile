@@ -7,7 +7,7 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY . .
-ENV NODE_OPTIONS=--max_old_space_size=512
+ENV NODE_OPTIONS=--max_old_space_size=1024
 RUN npx ng build --configuration production
 
 # Stage 2: Serve with Nginx
