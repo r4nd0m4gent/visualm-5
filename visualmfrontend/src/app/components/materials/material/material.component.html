@@ -55,18 +55,18 @@
       </div>
       <div class="row">
         <div id="qrCode" class="col-md-4 mt-2">
-          <img src="{{this.logoPath}}" style="width: 10rem;"
-               [ngClass]="{'is-hidden': material?.getQRCodeURL() }"/>
-          <ngx-qrcode
-            [ngClass]="{'is-hidden': !material?.getQRCodeURL() }"
-            [elementType]="elementType"
-            [errorCorrectionLevel]="correctionLevel"
-            [value]="material?.getQRCodeURL()"
-            cssClass="bshadow"></ngx-qrcode>
+          <ng-container *ngIf="material?.getSaveStatus() === 'PUBLISHED'">
+            <ngx-qrcode
+              [ngClass]="{'is-hidden': !material?.getQRCodeURL() }"
+              [elementType]="elementType"
+              [errorCorrectionLevel]="correctionLevel"
+              [value]="material?.getQRCodeURL()"
+              cssClass="bshadow"></ngx-qrcode>
 
-          <label class="label m-2">
-            {{ material?.getQRCodeURL() }}
-          </label>
+            <label class="label m-2">
+              {{ material?.getQRCodeURL() }}
+            </label>
+          </ng-container>
         </div>
 
 
@@ -100,7 +100,7 @@
           <div class="ingredient-container mt-3">
             <ul>
               <li *ngFor="let mi of ingredientArray" class="mb-1 info">
-                {{ mi.ingredient.name }} {{ mi.amount }} {{ mi.ingredient.type || 'gr' }}
+                {{ mi.ingredient.name }} {{ mi.amount }} {{ mi.ingredient.type === '-' ? '' : (mi.ingredient.type || 'gr') }}
               </li>
             </ul>
           </div>
@@ -255,7 +255,7 @@
                     <li *ngFor="let mi of ingredientArray" class="mb-1 info ingredient"
                         [style.color]="labelTemplate?.secondaryColor || 'black'"
                         [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
-                      {{ mi.ingredient.name }} {{ mi.amount }} {{ mi.ingredient.type || 'gr' }}
+                      {{ mi.ingredient.name }} {{ mi.amount }} {{ mi.ingredient.type === '-' ? '' : (mi.ingredient.type || 'gr') }}
                     </li>
                   </ul>
                 </div>

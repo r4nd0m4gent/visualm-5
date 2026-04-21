@@ -151,6 +151,7 @@
                 <select class="form-control rounded-pill" formControlName="ingredientUnit">
                   <option value="gr">gr</option>
                   <option value="ml">ml</option>
+                  <option value="-">-</option>
                 </select>
               </div>
 
@@ -180,7 +181,7 @@
             <div class="ingredient-container mt-3">
               <ul>
                 <li *ngFor="let mi of materialIngredients" class="mb-1">
-                  {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() || 'gr' }}
+                  {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() === '-' ? '' : (mi.getIngredient().getType() || 'gr') }}
                   <button class="btn btn-sm rounded-circle ml-1 smallBtnRound" type="button"
                           (click)="removeFromMaterialIngredients(mi.getIngredient())">
                     <img class="removeBtn" src="assets/icons/close.svg" height="18"/>
@@ -262,15 +263,11 @@
 
         <div class="row mt-4">
           <div class="col-md-9">
-            <a matTooltip="Please give credit to the recipe source by mentioning it here. Describe your alterations."
-               matTooltipPosition="after">
-              <img src="assets/icons/information-outline.svg" height="18"/>
-            </a>
-
-            <h2 class="h2">
-              <div class="form-check outside-form">
-                Please give credit to the recipe source by mentioning it here. Describe your alterations.
-              </div>
+            <h2 class="h2">CREDITS &amp; ALTERATIONS
+              <a matTooltip="Please give credit to the recipe source by mentioning it here. Describe your alterations."
+                 matTooltipPosition="after">
+                <img src="assets/icons/information-outline.svg" height="18"/>
+              </a>
             </h2>
 
             <div class="form-row mb-2" [ngClass]="{'is-hidden': materialForm.get('variationOn').value}">
@@ -529,7 +526,7 @@
                     <li *ngFor="let mi of materialIngredients" class="mb-1 info ingredient"
                         [style.color]="labelTemplate?.secondaryColor || 'black'"
                         [style.fontSize]="labelTemplate?.bodyFontSize || '17pt'">
-                      {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() || 'gr' }}
+                      {{ mi.getIngredient().getName() }} {{ mi.getAmount() }} {{ mi.getIngredient().getType() === '-' ? '' : (mi.getIngredient().getType() || 'gr') }}
                     </li>
                   </ul>
                 </div>

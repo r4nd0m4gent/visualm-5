@@ -107,15 +107,13 @@ export class MaterialFormComponent implements OnInit {
         Validators.pattern(whitespaceCheck)]),
       'url': new FormControl(null, this.validURL.bind(this)),
       'step': new FormControl(null, this.emptySteps.bind(this)),
-      'changes': new FormControl(null, [Validators.required, Validators.pattern(whitespaceCheck),
-        Validators.maxLength(100)]),
+      'changes': new FormControl(null, [Validators.pattern(whitespaceCheck), Validators.maxLength(80)]),
       'sequenceNumber': new FormControl(null),
       'variationOn': new FormControl(false),
-      'referenceAuthor': new FormControl(null, [Validators.required, Validators.pattern(whitespaceCheck)]),
+      'referenceAuthor': new FormControl(null, [Validators.pattern(whitespaceCheck)]),
       'referenceEmail': new FormControl(null, Validators.email),
-      'referenceTitle': new FormControl(null, [Validators.required, Validators.pattern(whitespaceCheck)]),
-      'referenceYear': new FormControl(null, [Validators.required, Validators.pattern(new RegExp('\\d')),
-        Validators.minLength(4)]),
+      'referenceTitle': new FormControl(null, [Validators.pattern(whitespaceCheck)]),
+      'referenceYear': new FormControl(null, [Validators.pattern(new RegExp('\\d')), Validators.minLength(4)]),
       'ingredient': new FormControl(null, this.emptyIngredients.bind(this)),
       'ingredientUnit': new FormControl('gr'),
       'amount': new FormControl(null, Validators.pattern('^[0-9]*$')),
@@ -139,26 +137,12 @@ export class MaterialFormComponent implements OnInit {
   private setVariationOnValidators(): void {
     this.materialForm.get('variationOn').valueChanges.subscribe(required => {
       const sequenceNumberControl: AbstractControl = this.materialForm.get('sequenceNumber');
-      const referenceAuthorControl: AbstractControl = this.materialForm.get('referenceAuthor');
-      const referenceTitleControl: AbstractControl = this.materialForm.get('referenceTitle');
-      const referenceYearControl: AbstractControl = this.materialForm.get('referenceYear');
-
-      sequenceNumberControl.setValidators(null);
-      referenceAuthorControl.setValidators(Validators.required);
-      referenceTitleControl.setValidators(Validators.required);
-      referenceYearControl.setValidators([Validators.required, Validators.pattern(new RegExp('\\d')), Validators.minLength(4)]);
-
       if (required) {
         sequenceNumberControl.setValidators([Validators.required]);
-        referenceAuthorControl.setValidators(null);
-        referenceTitleControl.setValidators(null);
-        referenceYearControl.setValidators(null);
+      } else {
+        sequenceNumberControl.setValidators(null);
       }
-
       sequenceNumberControl.updateValueAndValidity();
-      referenceAuthorControl.updateValueAndValidity();
-      referenceTitleControl.updateValueAndValidity();
-      referenceYearControl.updateValueAndValidity();
     });
   }
 
@@ -190,23 +174,21 @@ export class MaterialFormComponent implements OnInit {
 
   public onSubmit(): void {
     this.onSubmitDisable = true;
-    let changes = "No changes";
-    if (this.materialForm.get('changes').value != null) {
-      changes = this.materialForm.get('changes').value.trim();
-    }
+    const changes = this.materialForm.get('changes').value?.trim() || 'No changes';
+
+    const author = this.materialForm.get('referenceAuthor').value?.trim();
+    const refTitle = this.materialForm.get('referenceTitle').value?.trim();
+    const year = this.materialForm.get('referenceYear').value;
     let reference = `By ${this.recipeAuthor} - ${this.recipeTitle} - ${this.recipeYear}`;
 
     if (!this.materialForm.get('variationOn').value) {
-      if (this.materialForm.get('referenceAuthor').value != null || this.materialForm.get('referenceTitle').value != null) {
-        reference = `By ${this.materialForm.get('referenceAuthor').value.trim()} - ${this.materialForm.get('referenceTitle').value.trim()} - ${this.materialForm.get('referenceYear').value}`;
-      } else {
-        reference = "No references"
-      }
+      reference = (author || refTitle || year)
+        ? `By ${author || ''} - ${refTitle || ''} - ${year || ''}`
+        : 'No references';
       this.parentId = null;
     }
 
     const tags: Tag[] = [];
-
     this.tagKeys.forEach(value => {
       const tag: Tag = new Tag((Object.keys(MaterialTag).indexOf(value) + 1), value);
       tags.push(tag);
@@ -216,13 +198,10 @@ export class MaterialFormComponent implements OnInit {
       this.bitlyURL = 'No link added';
     }
 
-    let title = "Untitled";
-    if (this.materialForm.get('title').value != null) {
-      title = this.materialForm.get('title').value.trim();
-    }
+    const title = this.materialForm.get('title').value?.trim() || 'Untitled';
 
     if (this.steps.length == 0) {
-      this.steps.push("No Steps added yet")
+      this.steps.push('No Steps added yet');
     }
 
     const material: Material = new Material(0, title,
@@ -234,42 +213,11 @@ export class MaterialFormComponent implements OnInit {
     material.organisation = this.organisationName;
     material.postProcessingTags = this.selectedPostProcessingTags.join('|');
 
-    let publishedSequenceNumbers = [];
-    let sequenceNumberPublished = 0;
-
     if (this.overviewFileUpload.isValid() && this.closeUpFileUpload.isValid()) {
       this.loadingDone = false;
-
-      this.materialService.getAll().subscribe(materials => {
-        materials.forEach((material) => {
-          const currentMaterial: Material = Material.trueCopy(material);
-
-          // Only display PUBLISHED labels
-          if (currentMaterial.getSaveStatus() === SaveStatus.PUBLISHED) {
-            this.materials.push(currentMaterial);
-          }
-        });
-
-        this.materials.forEach(material => {
-          publishedSequenceNumbers.push(material.getSequenceNumberPublished())
-        });
-
-        sequenceNumberPublished = (Math.max.apply(Math, publishedSequenceNumbers)) + 1;
-
-        if (!isFinite(sequenceNumberPublished)) {
-          sequenceNumberPublished = 1;
-        }
-        material.setSequenceNumberPublished(sequenceNumberPublished);
-
-        this.materialService.save(material).subscribe(data => {
-          this.creationFailed = false;
-          this.router.navigate(['/home']);
-        }, error => {
-          console.log(error);
-          this.creationFailed = true;
-          this.onSubmitDisable = false;
-          this.loadingDone = true;
-        });
+      this.materialService.save(material).subscribe(data => {
+        this.creationFailed = false;
+        this.router.navigate(['/home']);
       }, error => {
         console.log(error);
         this.creationFailed = true;

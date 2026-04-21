@@ -2,6 +2,7 @@ package visualmserver.controllers;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import visualmserver.repositories.IngredientRepository;
 import visualmserver.repositories.MaterialIngredientRepository;
 import visualmserver.repositories.MaterialsRepository;
 import visualmserver.repositories.UserRepository;
+import visualmserver.services.EmailSenderService;
 import visualmserver.util.FileUploadHandler;
 import visualmserver.util.JWTokenInfo;
 
@@ -40,6 +42,12 @@ public class MaterialsController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailSenderService emailSenderService;
+
+    @Value("${frontend.url:}")
+    private String frontendUrl;
 
     @GetMapping
     public List<Material> getAllMaterials() throws IOException {
@@ -124,6 +132,10 @@ public class MaterialsController {
             material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
         }
 
+        if (material.getSaveStatus() == SaveStatus.PENDING_APPROVAL) {
+            notifyAdminsOnSubmission(material);
+        }
+
         if (material.getOverviewURL() != null) {
             String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), String.format("/images/material/%s/", material.getUser().getId()));
             material.setOverviewURL(savedImgPath);
@@ -163,6 +175,11 @@ public class MaterialsController {
         // Non-admin users cannot publish directly — route through approval
         if (material.getSaveStatus() == SaveStatus.PUBLISHED && !tokenInfo.isAdmin()) {
             material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
+        }
+
+        boolean wasNotPending = foundMaterial.getSaveStatus() != SaveStatus.PENDING_APPROVAL;
+        if (material.getSaveStatus() == SaveStatus.PENDING_APPROVAL && wasNotPending) {
+            notifyAdminsOnSubmission(material);
         }
 
         if (material.getOverviewURL() != null) {
@@ -264,6 +281,40 @@ public class MaterialsController {
         savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
 
         return ResponseEntity.ok().body(savedMaterial);
+    }
+
+    private void notifyAdminsOnSubmission(Material material) {
+        if (material.getUser() == null || material.getUser().getOrganisation() == null) return;
+        String organisation = material.getUser().getOrganisation();
+        List<User> admins = userRepository.findByOrganisationAndAdmin(organisation, true);
+        String base = (frontendUrl != null && !frontendUrl.isBlank())
+                ? (frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl)
+                : "";
+        String adminPanelLink = base + "/#/admin";
+        String body = "<p>A new label has been submitted for review under your organisation <strong>" + organisation + "</strong>.</p>"
+                + "<p><a href='" + adminPanelLink + "'>Go to admin panel</a></p>";
+        for (User admin : admins) {
+            if (admin.isNotifyOnSubmission()) {
+                emailSenderService.sendMail("Visualm5", admin.getEmail(), "Label submitted", body);
+            }
+        }
+    }
+
+    private void notifyAdminsOnSubmission(Material material) {
+        if (material.getUser() == null || material.getUser().getOrganisation() == null) return;
+        String organisation = material.getUser().getOrganisation();
+        List<User> admins = userRepository.findByOrganisationAndAdmin(organisation, true);
+        String base = (frontendUrl != null && !frontendUrl.isBlank())
+                ? (frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl)
+                : "";
+        String adminPanelLink = base + "/#/admin";
+        String body = "<p>A new label has been submitted for review under your organisation <strong>" + organisation + "</strong>.</p>"
+                + "<p><a href='" + adminPanelLink + "'>Go to admin panel</a></p>";
+        for (User admin : admins) {
+            if (admin.isNotifyOnSubmission()) {
+                emailSenderService.sendMail("Visualm5", admin.getEmail(), "Label submitted", body);
+            }
+        }
     }
 
     private Material insertMaterial(Material material, Material existingMaterial) {

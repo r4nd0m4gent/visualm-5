@@ -45,6 +45,9 @@ public class User {
   private boolean admin;
 
   private boolean verified;
+
+  @Column(name = "notify_on_submission", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+  private boolean notifyOnSubmission = false;
   
   public User() {
   }
@@ -132,5 +135,13 @@ public class User {
 
   public void setVerified(boolean verified) {
     this.verified = verified;
+  }
+
+  public boolean isNotifyOnSubmission() {
+    return notifyOnSubmission;
+  }
+
+  public void setNotifyOnSubmission(boolean notifyOnSubmission) {
+    this.notifyOnSubmission = notifyOnSubmission;
   }
 }

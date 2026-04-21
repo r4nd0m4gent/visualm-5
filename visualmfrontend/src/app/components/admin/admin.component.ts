@@ -412,6 +412,20 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  onNotifyOnSubmissionChange(): void {
+    this.userService.updateUserProfile(this.user.getId(), this.user).subscribe(() => {
+      this.snackBar.open(
+        this.user.isNotifyOnSubmission()
+          ? 'Email notifications enabled'
+          : 'Email notifications disabled',
+        'Close',
+        { duration: 2000, horizontalPosition: 'center', verticalPosition: 'bottom' }
+      );
+    }, error => {
+      console.log(error);
+    });
+  }
+
   onLogoFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {

@@ -8,6 +8,7 @@ export class User {
   private img_path: string;
   private admin: boolean;
   private verified: boolean;
+  public notifyOnSubmission: boolean = false;
 
   constructor(email?: string, password?: string, id?: number, firstname?: string, lastname?: string, organisation?: string, isAdmin?: boolean, verified?: boolean) {
     this.id = id;
@@ -22,6 +23,10 @@ export class User {
 
   isAdmin(): boolean {
     return this.admin;
+  }
+
+  isNotifyOnSubmission(): boolean {
+    return this.notifyOnSubmission;
   }
 
   setAdmin(admin: boolean): void {
