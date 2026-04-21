@@ -16,6 +16,10 @@ export class MaterialsService {
     return this.http.get<Material[]>(`${MaterialsService.BASE_URL}`);
   }
 
+  public getAllPublished(): Observable<Material[]> {
+    return this.http.get<Material[]>(`${MaterialsService.BASE_URL}/published`);
+  }
+
   public getBySequenceNumber(sequenceNumber: number): Observable<Material> {
     return this.http.get<Material>(`${MaterialsService.BASE_URL}/${sequenceNumber}`);
   }

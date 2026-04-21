@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Material} from 'src/app/models/material';
 import {MaterialTag} from 'src/app/models/materialtag.enum';
-import {SaveStatus} from 'src/app/models/save-status.enum';
 import {MaterialsService} from 'src/app/services/materials.service';
 
 @Component({
@@ -18,7 +17,7 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.materialService.getAll().subscribe(materials => {
+    this.materialService.getAllPublished().subscribe(materials => {
       materials.forEach((material) => {
         const currentMaterial: Material = Material.trueCopy(material);
 
@@ -26,10 +25,7 @@ export class HomeComponent implements OnInit {
           this.loadingDone = true;
         }
 
-        // Only display PUBLISHED labels
-        if (currentMaterial.getSaveStatus() === SaveStatus.PUBLISHED) {
-          this.materials.push(currentMaterial);
-        }
+        this.materials.push(currentMaterial);
       });
     });
   }

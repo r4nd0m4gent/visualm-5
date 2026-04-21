@@ -183,6 +183,17 @@ public class MaterialsController {
         return ResponseEntity.ok().body(savedMaterial);
     }
 
+    @GetMapping("/published")
+    public List<Material> getPublishedMaterials() throws IOException {
+        List<Material> materials = this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PUBLISHED);
+
+        for (Material material : materials) {
+            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
+        }
+
+        return materials;
+    }
+
     @GetMapping("/pending")
     public List<Material> getPendingMaterials(@RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
         if (!tokenInfo.isAdmin()) {
