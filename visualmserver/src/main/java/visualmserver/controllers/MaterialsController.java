@@ -300,23 +300,6 @@ public class MaterialsController {
         }
     }
 
-    private void notifyAdminsOnSubmission(Material material) {
-        if (material.getUser() == null || material.getUser().getOrganisation() == null) return;
-        String organisation = material.getUser().getOrganisation();
-        List<User> admins = userRepository.findByOrganisationAndAdmin(organisation, true);
-        String base = (frontendUrl != null && !frontendUrl.isBlank())
-                ? (frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl)
-                : "";
-        String adminPanelLink = base + "/#/admin";
-        String body = "<p>A new label has been submitted for review under your organisation <strong>" + organisation + "</strong>.</p>"
-                + "<p><a href='" + adminPanelLink + "'>Go to admin panel</a></p>";
-        for (User admin : admins) {
-            if (admin.isNotifyOnSubmission()) {
-                emailSenderService.sendMail("Visualm5", admin.getEmail(), "Label submitted", body);
-            }
-        }
-    }
-
     private Material insertMaterial(Material material, Material existingMaterial) {
         Material savedMaterial = this.materialsRepository.save(material);
 
