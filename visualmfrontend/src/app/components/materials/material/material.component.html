@@ -212,8 +212,6 @@
 
           <div class="row" [class.flex-row-reverse]="labelTemplate?.logoPosition === 'left'">
             <div class="col-md-4" *ngIf="labelTemplate?.showQrCode !== false">
-              <img src="{{this.logoPath}}" style="width: 10rem;"
-                   [ngClass]="{'is-hidden': material?.getQRCodeURL() }"/>
               <ngx-qrcode
                 [ngClass]="{'is-hidden': !material?.getQRCodeURL() }"
                 [elementType]="elementType"
