@@ -21,7 +21,7 @@ import visualmserver.repositories.UserRepository;
 import visualmserver.services.EmailSenderService;
 import visualmserver.util.JWTokenUtils;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDateTime;
 

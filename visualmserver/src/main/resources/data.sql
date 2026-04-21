@@ -1,8 +1,8 @@
 -- Insert Tags
-INSERT INTO `tag` (`id`,`name`) VALUES (1,'VEGAN');
+INSERT INTO `tag` (`id`,`name`) VALUES (1,'INDUSTRIALLY_COMPOSTABLE');
 INSERT INTO `tag` (`id`,`name`) VALUES (2,'RENEWABLE');
 INSERT INTO `tag` (`id`,`name`) VALUES (3,'REUSABLE');
-INSERT INTO `tag` (`id`,`name`) VALUES (4,'LOCALLY_ABUNDANT');
+INSERT INTO `tag` (`id`,`name`) VALUES (4,'LOCALLY_SOURCED');
 INSERT INTO `tag` (`id`,`name`) VALUES (5,'BY_PRODUCT');
 INSERT INTO `tag` (`id`,`name`) VALUES (6,'HOME_COMPOSTABLE');
 

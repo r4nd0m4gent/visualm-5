@@ -15,6 +15,6 @@ public class ResourceConfig implements WebMvcConfigurer {
                 .allowedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE)
                 .exposedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE)
                 .allowedMethods("GET", "POST", "DELETE", "PUT")
-                .allowedOrigins("*");
+                .allowedOriginPatterns("*");
     }
 }

@@ -8,7 +8,7 @@ import visualmserver.models.Material;
 import visualmserver.models.MaterialIngredient;
 import visualmserver.models.MaterialIngredientKey;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Repository
 public interface MaterialIngredientRepository extends JpaRepository<MaterialIngredient, MaterialIngredientKey> {

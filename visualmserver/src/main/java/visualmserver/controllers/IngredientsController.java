@@ -13,7 +13,7 @@ import visualmserver.models.Ingredient;
 import visualmserver.repositories.IngredientRepository;
 import visualmserver.util.JWTokenInfo;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 

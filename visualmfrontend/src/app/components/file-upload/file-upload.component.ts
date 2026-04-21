@@ -32,14 +32,44 @@ export class FileUploadComponent implements OnInit {
     if (this.validate(file)) {
       this.fileName = file.name;
 
-      // Base64 conversion
       const reader: FileReader = new FileReader();
       reader.readAsDataURL(file);
 
       reader.onload = () => {
-        this.mediaDataURL = reader.result.toString();
+        const dataURL = reader.result.toString();
+        this.compressImage(dataURL, file.type).then(compressed => {
+          this.mediaDataURL = compressed;
+        });
       };
     }
+  }
+
+  private compressImage(dataURL: string, mimeType: string): Promise<string> {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIMENSION = 1200;
+        const QUALITY = 0.75;
+        let { width, height } = img;
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const outputType = mimeType === 'image/png' ? 'image/png' : 'image/jpeg';
+        resolve(canvas.toDataURL(outputType, QUALITY));
+      };
+      img.onerror = () => resolve(dataURL);
+      img.src = dataURL;
+    });
   }
 
   private validate(file: File): boolean {

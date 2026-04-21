@@ -21,7 +21,7 @@ import visualmserver.repositories.UserRepository;
 import visualmserver.util.FileUploadHandler;
 import visualmserver.util.JWTokenInfo;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;

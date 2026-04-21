@@ -16,7 +16,7 @@ import visualmserver.repositories.IngredientRepository;
 import visualmserver.repositories.ReportRepository;
 import visualmserver.util.JWTokenInfo;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 

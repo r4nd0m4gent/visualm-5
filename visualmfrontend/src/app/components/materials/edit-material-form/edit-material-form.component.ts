@@ -154,6 +154,10 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     if (this.material.getSteps() != "No Steps added yet") {
       this.steps = this.material.getSteps().split('|');
     }
+    // Restore post-processing tags
+    if (this.material.getPostProcessingTags()) {
+      this.selectedPostProcessingTags = this.material.getPostProcessingTags().split('|');
+    }
     this.materialForm.get('status').setValue(this.material.getSaveStatus());
     this.materialForm.get('step').updateValueAndValidity();
     this.materialForm.get('ingredient').updateValueAndValidity();
@@ -237,6 +241,7 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
 
     material.setOverviewURL(this.overviewFileUpload.mediaDataURL ? this.overviewFileUpload.mediaDataURL : null);
     material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL ? this.closeUpFileUpload.mediaDataURL : null);
+    material.organisation = this.organisationName;
 
     let publishedSequenceNumbers = [];
     let sequenceNumberPublished = 0;

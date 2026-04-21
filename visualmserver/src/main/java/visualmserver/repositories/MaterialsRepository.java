@@ -9,7 +9,7 @@ import visualmserver.models.User;
 
 import java.util.List;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Repository
 public interface MaterialsRepository extends JpaRepository<Material, Long> {
@@ -17,6 +17,8 @@ public interface MaterialsRepository extends JpaRepository<Material, Long> {
     Material getMaterialBySequenceNumberPublished(Long sequenceNumberPublished);
     List<Material> getMaterialsByUser (User user);
     List<Material> getMaterialsBySaveStatus(SaveStatus saveStatus);
+    List<Material> getMaterialsByOrganisationAndSaveStatus(String organisation, SaveStatus saveStatus);
+    List<Material> getMaterialsByOrganisation(String organisation);
     @Modifying
     @Transactional
     Long deleteMaterialBySequenceNumber(Long sequenceNumber);

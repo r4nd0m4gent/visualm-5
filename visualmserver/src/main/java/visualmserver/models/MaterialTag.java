@@ -1,10 +1,10 @@
 package visualmserver.models;
 
 public enum MaterialTag {
-    VEGAN,
+    INDUSTRIALLY_COMPOSTABLE,
     RENEWABLE,
     REUSABLE,
-    LOCALLY_ABUNDANT,
+    LOCALLY_SOURCED,
     BY_PRODUCT,
     HOME_COMPOSTABLE
 }

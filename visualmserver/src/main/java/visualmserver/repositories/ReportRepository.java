@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import visualmserver.models.Ingredient;
 import visualmserver.models.Report;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 @Repository

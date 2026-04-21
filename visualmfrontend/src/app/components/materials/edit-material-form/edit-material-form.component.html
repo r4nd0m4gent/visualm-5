@@ -84,7 +84,7 @@
 	      &bull; Please select a type.
 	    </span>
 
-            <h2 class="mt-3 h2">Sustainability tags:
+            <h2 class="mt-3 h2">Eco compatibility tags:
               <a matTooltip="Tick all that apply, for definitions please refer to FAQ on the About page" matTooltipPosition="after">
                 <img src="assets/icons/information-outline.svg" height="18"/>
               </a>
@@ -240,6 +240,27 @@
         </div>
 
         <div class="row mt-4">
+          <div class="col-md-12">
+            <h2 class="h2">POST PROCESSING:
+              <a matTooltip="Select all post-processing methods that apply" matTooltipPosition="after">
+                <img src="assets/icons/information-outline.svg" height="18"/>
+              </a>
+            </h2>
+            <div class="form-group mt-2">
+              <div class="form-check form-check-inline" *ngFor="let ppTag of postProcessingTagValues">
+                <label class="form-check-label" for="pp_edit_{{ ppTag }}">
+                  <input class="form-check-input" id="pp_edit_{{ ppTag }}" type="checkbox" [value]="ppTag"
+                         [checked]="selectedPostProcessingTags.includes(ppTag)"
+                         (change)="updatePostProcessingTags($event, ppTag)"/>
+                  {{ ppTag }}
+                  <span class="checkmark"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4">
           <div class="col-md-9">
             <a matTooltip="Please give credit to the recipe source by mentioning it here. Describe your alterations."
                matTooltipPosition="after">
@@ -248,7 +269,7 @@
 
             <h2 class="h2">
               <div class="form-check outside-form">
-                CREDITS & ALTERATIONS:
+                Please give credit to the recipe source by mentioning it here. Describe your alterations.
               </div>
             </h2>
 

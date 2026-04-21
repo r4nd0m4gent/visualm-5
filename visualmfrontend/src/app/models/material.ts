@@ -24,6 +24,8 @@ export class Material {
   private type: MaterialType;
   private user: User;
   private parentId: number;
+  public organisation: string;
+  public postProcessingTags: string;
 
   constructor(sequenceNumber?: number, name?: string, changes?: string, steps?: string, qrCodeURL?: string,
               tags?: Tag[], materialIngredients?: MaterialIngredient[], saveStatus?: SaveStatus, type?: MaterialType, user?: User,
@@ -150,5 +152,13 @@ export class Material {
 
   public setCloseUpURL(closeUpURL: string): void {
     this.closeUpURL = closeUpURL;
+  }
+
+  public getPostProcessingTags(): string {
+    return this.postProcessingTags;
+  }
+
+  public setPostProcessingTags(postProcessingTags: string): void {
+    this.postProcessingTags = postProcessingTags;
   }
 }

@@ -1,6 +1,7 @@
 import {Component, ElementRef, OnInit, ViewChild, ViewContainerRef} from '@angular/core';
 import {NgxQrcodeElementTypes, NgxQrcodeErrorCorrectionLevels} from '@techiediaries/ngx-qrcode';
 import {MaterialTag} from 'src/app/models/materialtag.enum';
+import {PostProcessingTag} from 'src/app/models/postprocessingtag.enum';
 import {Material} from 'src/app/models/material';
 import {AbstractControl, FormControl, FormGroup, Validators} from '@angular/forms';
 import {MaterialsService} from 'src/app/services/materials.service';
@@ -34,6 +35,8 @@ export class MaterialFormComponent implements OnInit {
   public searchFailed = false;
   public materialTagValues: string[];
   public materialTagKeys: string[];
+  public postProcessingTagValues: string[];
+  public selectedPostProcessingTags: string[];
   public materialTypeValues: string[];
   public materialTypeKeys: string[];
   public tags: MaterialTag[]; // Selected tags for view
@@ -75,6 +78,7 @@ export class MaterialFormComponent implements OnInit {
               protected snackBar: MatSnackBar, protected configService: AppConfigService) {
     this.tags = [];
     this.tagKeys = [];
+    this.selectedPostProcessingTags = [];
     this.steps = [];
     this.materialIngredients = [];
     this.creationDate = new Date();
@@ -123,6 +127,7 @@ export class MaterialFormComponent implements OnInit {
 
     this.materialTagValues = Object.values(MaterialTag);
     this.materialTagKeys = Object.keys(MaterialTag);
+    this.postProcessingTagValues = Object.values(PostProcessingTag);
     this.materialTypeValues = Object.values(MaterialType);
     this.materialTypeKeys = Object.keys(MaterialType);
 
@@ -226,6 +231,8 @@ export class MaterialFormComponent implements OnInit {
 
     material.setOverviewURL(this.overviewFileUpload.mediaDataURL);
     material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL);
+    material.organisation = this.organisationName;
+    material.postProcessingTags = this.selectedPostProcessingTags.join('|');
 
     let publishedSequenceNumbers = [];
     let sequenceNumberPublished = 0;
@@ -348,6 +355,17 @@ export class MaterialFormComponent implements OnInit {
     }
   }
 
+  public updatePostProcessingTags(event: any, value: string): void {
+    if (event.target.checked) {
+      this.selectedPostProcessingTags.push(value);
+    } else {
+      const idx = this.selectedPostProcessingTags.indexOf(value);
+      if (idx !== -1) {
+        this.selectedPostProcessingTags.splice(idx, 1);
+      }
+    }
+  }
+
   public addStep(): void {
     const stepControl: AbstractControl = this.materialForm.get('step');
 
@@ -408,6 +426,9 @@ export class MaterialFormComponent implements OnInit {
     this.organisationName = org.organisation;
     this.logoPath = org.logoPath;
     this.orgDropdownOpen = false;
+    this.configService.getTemplatesByOrganisation(org.organisation).subscribe(templates => {
+      this.labelTemplate = (templates && templates.length > 0) ? templates[0] : null;
+    });
   }
 
   public saveOrganisationName(): void {

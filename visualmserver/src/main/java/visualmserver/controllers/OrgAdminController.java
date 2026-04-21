@@ -99,7 +99,7 @@ public class OrgAdminController {
      * API: Update organisation details (name, logo) via private token.
      */
     @PutMapping("/api/{token}")
-    public ResponseEntity<OrgAdmin> updateOrg(@PathVariable String token, @RequestBody OrgAdmin updates) {
+    public ResponseEntity<OrgAdmin> updateOrg(@PathVariable String token, @RequestBody OrgAdmin updates) throws IOException {
         OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
         if (admin == null) {
             return ResponseEntity.status(403).build();
@@ -108,7 +108,13 @@ public class OrgAdminController {
             admin.setOrganisation(updates.getOrganisation());
         }
         if (updates.getLogoPath() != null) {
-            admin.setLogoPath(updates.getLogoPath());
+            String logoData = updates.getLogoPath();
+            if (logoData.startsWith("data:")) {
+                String savedPath = FileUploadHandler.upload(logoData, String.format("/images/logo/%d/", admin.getId()));
+                admin.setLogoPath(savedPath);
+            } else {
+                admin.setLogoPath(logoData);
+            }
         }
         orgAdminRepository.save(admin);
         return ResponseEntity.ok(admin);
@@ -124,7 +130,8 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
+        List<Material> materials = materialsRepository.getMaterialsByOrganisationAndSaveStatus(
+                admin.getOrganisation(), SaveStatus.PENDING_APPROVAL);
         for (Material material : materials) {
             material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
             material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
@@ -199,7 +206,7 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.findAll();
+        List<Material> materials = materialsRepository.getMaterialsByOrganisation(admin.getOrganisation());
         for (Material material : materials) {
             material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
             material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
