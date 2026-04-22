@@ -204,26 +204,27 @@ export class MaterialFormComponent implements OnInit {
       changes, this.steps.join('|'), this.bitlyURL, tags, this.materialIngredients,
       this.materialForm.get('status').value, this.materialForm.get('type').value, this.user, this.parentId, reference);
 
-    material.setOverviewURL(this.overviewFileUpload.mediaDataURL);
-    material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL);
+    material.setOverviewURL(this.overviewFileUpload.mediaDataURL || null);
+    material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL || null);
     material.organisation = this.organisationName;
     material.postProcessingTags = this.selectedPostProcessingTags.join('|');
 
-    if (this.overviewFileUpload.isValid() && this.closeUpFileUpload.isValid()) {
-      this.loadingDone = false;
-      this.materialService.save(material).subscribe(data => {
-        this.creationFailed = false;
-        this.router.navigate(['/home']);
-      }, error => {
-        console.log(error);
-        this.creationFailed = true;
-        this.onSubmitDisable = false;
-        this.loadingDone = true;
-      });
-    } else {
+    if (!this.overviewFileUpload.isValid() || !this.closeUpFileUpload.isValid()) {
       this.fileError = true;
       this.onSubmitDisable = false;
+      return;
     }
+
+    this.loadingDone = false;
+    this.materialService.save(material).subscribe(data => {
+      this.creationFailed = false;
+      this.router.navigate(['/home']);
+    }, error => {
+      console.log(error);
+      this.creationFailed = true;
+      this.onSubmitDisable = false;
+      this.loadingDone = true;
+    });
   }
 
 
