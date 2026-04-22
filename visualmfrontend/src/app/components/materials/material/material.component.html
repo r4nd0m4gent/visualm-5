@@ -211,9 +211,8 @@
         <div class="pdfText">
 
           <div class="row" [class.flex-row-reverse]="labelTemplate?.logoPosition === 'left'">
-            <div class="col-md-4" *ngIf="labelTemplate?.showQrCode !== false">
+            <div class="col-md-4" *ngIf="labelTemplate?.showQrCode !== false && material?.getQRCodeURL() && material?.getQRCodeURL() !== 'No link added'">
               <ngx-qrcode
-                [ngClass]="{'is-hidden': !material?.getQRCodeURL() }"
                 [elementType]="elementType"
                 [errorCorrectionLevel]="correctionLevel"
                 [value]="material?.getQRCodeURL()"
@@ -221,8 +220,8 @@
               <label class="label m-2">{{ material?.getQRCodeURL() }}</label>
             </div>
 
-            <div class="text-center" [class.col-md-4]="labelTemplate?.showQrCode !== false"
-                 [class.col-md-6]="labelTemplate?.showQrCode === false">
+            <div class="text-center" [class.col-md-4]="labelTemplate?.showQrCode !== false && material?.getQRCodeURL() && material?.getQRCodeURL() !== 'No link added'"
+                 [class.col-md-6]="labelTemplate?.showQrCode === false || !material?.getQRCodeURL() || material?.getQRCodeURL() === 'No link added'">
               <h1 class="nameTitle text-uppercase"
                   [style.color]="labelTemplate?.primaryColor || 'black'"
                   [style.fontSize]="labelTemplate?.titleFontSize || '27pt'">{{ material?.getName() }}</h1>

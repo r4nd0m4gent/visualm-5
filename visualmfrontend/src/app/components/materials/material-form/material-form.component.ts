@@ -194,10 +194,6 @@ export class MaterialFormComponent implements OnInit {
       tags.push(tag);
     });
 
-    if (this.bitlyURL == null) {
-      this.bitlyURL = 'No link added';
-    }
-
     const title = this.materialForm.get('title').value?.trim() || 'Untitled';
 
     if (this.steps.length == 0) {

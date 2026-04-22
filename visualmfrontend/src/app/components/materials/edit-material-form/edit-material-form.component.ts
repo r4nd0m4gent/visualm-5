@@ -120,8 +120,10 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     titleControl.setValue(this.material.getName());
     titleControl.updateValueAndValidity();
 
-    urlControl.setValue(this.material.getQRCodeURL());
-    this.bitlyURL = this.material.getQRCodeURL();
+    const existingUrl = (this.material.getQRCodeURL() && this.material.getQRCodeURL() !== 'No link added')
+      ? this.material.getQRCodeURL() : null;
+    urlControl.setValue(existingUrl);
+    this.bitlyURL = existingUrl;
     urlControl.updateValueAndValidity();
 
     this.material.getTags().forEach(tagValue => {
@@ -224,9 +226,7 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
       tags.push(tag);
     });
 
-    if (this.bitlyURL == null) {
-      this.bitlyURL = 'No link added';
-    }
+
 
     let title = "Untitled";
     if (this.materialForm.get('title').value != null) {

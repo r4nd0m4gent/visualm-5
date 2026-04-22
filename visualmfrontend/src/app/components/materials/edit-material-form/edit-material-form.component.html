@@ -484,9 +484,8 @@
         <!-- PDF Body -->
         <div class="pdfText">
           <div class="row" [class.flex-row-reverse]="labelTemplate?.logoPosition === 'left'">
-            <div class="col-md-4" *ngIf="labelTemplate?.showQrCode !== false">
+            <div class="col-md-4" *ngIf="labelTemplate?.showQrCode !== false && bitlyURL && bitlyURL !== 'No link added'">
               <ngx-qrcode
-                [ngClass]="{'is-hidden': !bitlyURL }"
                 [elementType]="elementType"
                 [errorCorrectionLevel]="correctionLevel"
                 [value]="bitlyURL"
@@ -494,8 +493,8 @@
               <label class="label m-2">{{ bitlyURL }}</label>
             </div>
 
-            <div class="text-center" [class.col-md-4]="labelTemplate?.showQrCode !== false"
-                 [class.col-md-6]="labelTemplate?.showQrCode === false">
+            <div class="text-center" [class.col-md-4]="labelTemplate?.showQrCode !== false && bitlyURL && bitlyURL !== 'No link added'"
+                 [class.col-md-6]="labelTemplate?.showQrCode === false || !bitlyURL || bitlyURL === 'No link added'">
               <h1 class="nameTitle text-uppercase"
                   [style.color]="labelTemplate?.primaryColor || 'black'"
                   [style.fontSize]="labelTemplate?.titleFontSize || '27pt'">{{ materialForm.get('title').value || 'Untitled' }}</h1>
