@@ -15,6 +15,10 @@ set -e
 
 echo "=== VisualM Deployment ==="
 
+# Optional: pass a service name to deploy only that service
+# Usage: bash deploy.sh backend   (or: frontend, certbot)
+SERVICE=${1:-}
+
 # Check .env file exists
 if [ ! -f .env ]; then
     echo "ERROR: .env file not found. Copy .env.example to .env and fill in your values."
@@ -43,7 +47,12 @@ mkdir -p nginx/certbot/conf nginx/certbot/www
 
 # Build and start containers
 echo "Building and starting containers..."
-docker compose up -d --build
+if [ -n "$SERVICE" ]; then
+    echo "Deploying service: $SERVICE"
+    docker compose up -d --build "$SERVICE"
+else
+    docker compose up -d --build
+fi
 
 echo ""
 echo "=== Deployment complete! ==="

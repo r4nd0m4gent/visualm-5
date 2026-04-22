@@ -7,5 +7,6 @@ public enum MaterialTag {
     LOCALLY_SOURCED,
     LOCALLY_ABUNDANT,
     BY_PRODUCT,
-    HOME_COMPOSTABLE
+    HOME_COMPOSTABLE,
+    VEGAN
 }
