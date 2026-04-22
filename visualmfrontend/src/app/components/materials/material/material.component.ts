@@ -119,7 +119,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
   }
 
   get pdfTags(): string[] {
-    const baseTags = (this.material?.getTags() || []).map(tag => this.materialTag[tag.getName()]);
+    const baseTags = (this.material?.getTags() || []).map(tag => this.materialTag[tag.name]);
     const postProcessingTags = this.material?.getPostProcessingTags()
       ? this.material.getPostProcessingTags().split('|').filter(Boolean)
       : [];

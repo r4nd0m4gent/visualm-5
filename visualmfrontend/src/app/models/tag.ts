@@ -1,6 +1,6 @@
 export class Tag {
   private id: number;
-  private name: string;
+  public name: string;
 
   constructor(id?: number, name?: string) {
     this.id = id;

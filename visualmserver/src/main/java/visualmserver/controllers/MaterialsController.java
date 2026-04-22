@@ -127,6 +127,9 @@ public class MaterialsController {
 
         this.validateSize(material);
 
+        // Force INSERT: frontend sends sequenceNumber=0; setting it to null lets JPA auto-generate the ID.
+        material.setSequenceNumber(null);
+
         // Resolve submitter — required since login is not enforced on the frontend.
         // Use the user id sent by the client if valid, else fall back to the first user in the DB.
         User submitter = null;
@@ -137,7 +140,8 @@ public class MaterialsController {
             submitter = userRepository.getUserById((int) tokenInfo.getId());
         }
         if (submitter == null) {
-            submitter = userRepository.getUserById(1);
+            // Fall back to the first available user in the DB
+            submitter = userRepository.findAll().stream().findFirst().orElse(null);
         }
         material.setUser(submitter);
 
