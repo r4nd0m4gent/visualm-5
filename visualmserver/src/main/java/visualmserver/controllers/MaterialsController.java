@@ -127,6 +127,20 @@ public class MaterialsController {
 
         this.validateSize(material);
 
+        // Resolve submitter — required since login is not enforced on the frontend.
+        // Use the user id sent by the client if valid, else fall back to the first user in the DB.
+        User submitter = null;
+        if (material.getUser() != null && material.getUser().getId() > 0) {
+            submitter = userRepository.getUserById(material.getUser().getId());
+        }
+        if (submitter == null && tokenInfo.getId() > 0) {
+            submitter = userRepository.getUserById((int) tokenInfo.getId());
+        }
+        if (submitter == null) {
+            submitter = userRepository.getUserById(1);
+        }
+        material.setUser(submitter);
+
         // Non-admin users cannot publish directly — route through approval
         if (material.getSaveStatus() == SaveStatus.PUBLISHED && !tokenInfo.isAdmin()) {
             material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
@@ -171,6 +185,9 @@ public class MaterialsController {
         if (foundMaterial == null) {
             throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
         }
+
+        // Preserve the original submitter from the existing material
+        material.setUser(foundMaterial.getUser());
 
         // Non-admin users cannot publish directly — route through approval
         if (material.getSaveStatus() == SaveStatus.PUBLISHED && !tokenInfo.isAdmin()) {
