@@ -5,6 +5,7 @@ public enum MaterialTag {
     RENEWABLE,
     REUSABLE,
     LOCALLY_SOURCED,
+    LOCALLY_ABUNDANT,
     BY_PRODUCT,
     HOME_COMPOSTABLE
 }
