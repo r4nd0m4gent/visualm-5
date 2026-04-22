@@ -201,7 +201,7 @@ export class MaterialFormComponent implements OnInit {
     }
 
     const material: Material = new Material(0, title,
-      changes, this.steps.join('|'), this.bitlyURL, tags, this.materialIngredients,
+      changes, this.steps.join('|'), this.bitlyURL || 'No link added', tags, this.materialIngredients,
       this.materialForm.get('status').value, this.materialForm.get('type').value, this.user, this.parentId, reference);
 
     material.setOverviewURL(this.overviewFileUpload.mediaDataURL || null);
@@ -222,6 +222,7 @@ export class MaterialFormComponent implements OnInit {
     }, error => {
       console.log(error);
       this.creationFailed = true;
+      this.popupPublish = false;
       this.onSubmitDisable = false;
       this.loadingDone = true;
     });

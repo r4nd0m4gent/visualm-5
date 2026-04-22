@@ -238,7 +238,7 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     }
 
     const material: Material = new Material(this.material.getSequenceNumber(), this.materialForm.get('title').value.trim(),
-      changes, this.steps.join('|'), this.bitlyURL, tags, this.materialIngredients, this.materialForm.get('status').value,
+      changes, this.steps.join('|'), this.bitlyURL || 'No link added', tags, this.materialIngredients, this.materialForm.get('status').value,
       this.materialForm.get('type').value, this.user, this.parentId, reference);
 
     material.setOverviewURL(this.overviewFileUpload.mediaDataURL ? this.overviewFileUpload.mediaDataURL : null);
