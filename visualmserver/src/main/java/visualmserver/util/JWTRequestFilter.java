@@ -51,9 +51,15 @@ public class JWTRequestFilter extends OncePerRequestFilter {
             // get token from auth request header
             encodedToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-            // Make sure the token was received from the auth header
+            // If no token is present, inject a default guest identity (login is not required)
             if (encodedToken == null) {
-                throw new TokenException("Authentication problem");
+                JWTokenInfo guestInfo = new JWTokenInfo();
+                guestInfo.setId(0L);
+                guestInfo.setEmail("guest@local");
+                guestInfo.setAdmin(false);
+                request.setAttribute(JWTokenInfo.ATTRIBUTE_KEY, guestInfo);
+                filterChain.doFilter(request, response);
+                return;
             }
 
             encodedToken = encodedToken.replace("Bearer ", "");
