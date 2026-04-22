@@ -118,6 +118,15 @@ export class MaterialComponent implements OnInit, OnDestroy {
     this.router.navigate(['/']);
   }
 
+  get pdfTags(): string[] {
+    const baseTags = (this.material?.getTags() || []).map(tag => this.materialTag[tag.getName()]);
+    const postProcessingTags = this.material?.getPostProcessingTags()
+      ? this.material.getPostProcessingTags().split('|').filter(Boolean)
+      : [];
+
+    return [...baseTags, ...postProcessingTags];
+  }
+
   getIngredients() {
     const ingredients = this.material.getMaterialIngredients();
 

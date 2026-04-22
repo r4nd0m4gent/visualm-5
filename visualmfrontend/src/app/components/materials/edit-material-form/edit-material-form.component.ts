@@ -228,28 +228,37 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
 
 
 
-    let title = "Untitled";
-    if (this.materialForm.get('title').value != null) {
-      title = this.materialForm.get('title').value.trim();
-    }
+    const title = this.materialForm.get('title').value?.trim() || 'Untitled';
 
     if (this.steps.length == 0) {
-      this.steps.push("No Steps added yet")
+      this.steps.push('No Steps added yet');
     }
 
-    const material: Material = new Material(this.material.getSequenceNumber(), this.materialForm.get('title').value.trim(),
+    if (!this.overviewFileUpload.isValid() || !this.closeUpFileUpload.isValid()) {
+      this.fileError = true;
+      this.popupPublish = false;
+      this.onSubmitEdit = false;
+      this.loadingEditDone = true;
+      return;
+    }
+
+    const material: Material = new Material(this.material.getSequenceNumber(), title,
       changes, this.steps.join('|'), this.bitlyURL || 'No link added', tags, this.materialIngredients, this.materialForm.get('status').value,
       this.materialForm.get('type').value, this.user, this.parentId, reference);
 
     material.setOverviewURL(this.overviewFileUpload.mediaDataURL ? this.overviewFileUpload.mediaDataURL : null);
     material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL ? this.closeUpFileUpload.mediaDataURL : null);
     material.organisation = this.organisationName;
+    material.postProcessingTags = this.selectedPostProcessingTags.join('|');
     material.setSequenceNumberPublished(this.material.getSequenceNumberPublished());
 
     this.materialService.update(material.getSequenceNumber(), material).subscribe(data => {
+      this.creationFailed = false;
       this.router.navigate(['material', this.material.getSequenceNumber()]);
     }, error => {
+      console.log(error);
       this.creationFailed = true;
+      this.popupPublish = false;
       this.onSubmitEdit = false;
       this.loadingEditDone = true;
     });

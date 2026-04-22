@@ -368,6 +368,10 @@ export class MaterialFormComponent implements OnInit {
     return this.logoPath;
   }
 
+  get pdfTags(): string[] {
+    return [...this.tags, ...this.selectedPostProcessingTags].filter(Boolean);
+  }
+
   public onOrgSelected(org: {organisation: string, logoPath: string}): void {
     this.organisationName = org.organisation;
     this.logoPath = org.logoPath;
