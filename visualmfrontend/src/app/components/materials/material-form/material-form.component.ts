@@ -45,8 +45,6 @@ export class MaterialFormComponent implements OnInit {
   public materialIngredients: MaterialIngredient[];
   public creationDate: Date;
   public sequenceNumber: string;
-  public creationFailed = false;
-  public fileError = false;
   public saveStatus = SaveStatus;
   public user: User;
   public logoPath: string;
@@ -211,7 +209,6 @@ export class MaterialFormComponent implements OnInit {
     material.referenceEmail = this.materialForm.get('referenceEmail').value?.trim() || null;
 
     if (!this.overviewFileUpload.isValid() || !this.closeUpFileUpload.isValid()) {
-      this.fileError = true;
       this.onSubmitDisable = false;
       return;
     }
