@@ -234,10 +234,6 @@ export class MaterialFormComponent implements OnInit {
         duration: 7000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',
-      })ing went wrong. Please try again.', 'Close', {
-        duration: 7000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
       });
       this.popupPublish = false;
       this.onSubmitDisable = false;
