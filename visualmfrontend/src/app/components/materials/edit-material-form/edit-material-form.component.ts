@@ -269,7 +269,15 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
       this.router.navigate(['material', this.material.getSequenceNumber()]);
     }, error => {
       console.log(error);
-      this.creationFailed = true;
+      this.snackBar.open('Something went wrong. Please try again.', 'Close', {
+        duration: 7000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      })ing went wrong. Please try again.', 'Close', {
+        duration: 7000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      });
       this.popupPublish = false;
       this.onSubmitEdit = false;
       this.loadingEditDone = true;

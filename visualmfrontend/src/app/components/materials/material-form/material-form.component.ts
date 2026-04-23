@@ -227,10 +227,18 @@ export class MaterialFormComponent implements OnInit {
           verticalPosition: 'bottom',
         });
       }
-      this.router.navigate(['/home']);
+      this.router.navigate(['/archive']);
     }, error => {
       console.log(error);
-      this.creationFailed = true;
+      this.snackBar.open('Something went wrong. Please try again.', 'Close', {
+        duration: 7000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      })ing went wrong. Please try again.', 'Close', {
+        duration: 7000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      });
       this.popupPublish = false;
       this.onSubmitDisable = false;
       this.loadingDone = true;

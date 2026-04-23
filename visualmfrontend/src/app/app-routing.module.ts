@@ -18,8 +18,8 @@ import {AboutComponent} from './components/about/about.component';
 import {OrgAdminPanelComponent} from './components/org-admin-panel/org-admin-panel.component';
 
 const routes: Routes = [
-  {path: '', redirectTo: '/home', pathMatch: 'full'},
-  {path: 'home', component: SearchComponent},
+  {path: '', redirectTo: '/archive', pathMatch: 'full'},
+  {path: 'archive', component: SearchComponent},
   {path: 'materials/create', component: MaterialFormComponent, canActivate: [AuthGuard]},
   {path: 'material/:sequence_number', component: MaterialComponent},
   {path: 'my-profile', component: ProfileComponent, canActivate: [AuthGuard]},

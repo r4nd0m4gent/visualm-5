@@ -420,19 +420,7 @@
       <div class="row">
         <div class="col-md-12 text-center mt-4 mb-4">
 
-          <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert" *ngIf="creationFailed">
-            <strong>Something went wrong!</strong> You should check in on some of those fields above.
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="creationFailed=false">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="buttonsCreateLabel">
-            <button routerLink="/home" class="btn is-primary form-control cancelButton">
-              <img height="18" src="assets/icons/close.svg">
-              Cancel
-            </button>
-            <div class="saveButtonFlex">
-              <button type="button" class="btn is-primary form-control pdfBtnMat" (click)="generatePdf()">
+          <div class="type="button" class="btn is-primary form-control pdfBtnMat" (click)="generatePdf()">
                 <img height="18" src="assets/icons/content-save.svg">
                 Save as PDF label
               </button>

@@ -64,7 +64,7 @@ export class MailVerificationComponent implements OnInit, OnDestroy {
 
   private redirectAfterDelay(): void {
     setTimeout(() => {
-      this.router.navigate(['/home']);
+      this.router.navigate(['/archive']);
     }, 1500);
   }
 }
