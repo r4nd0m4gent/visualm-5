@@ -26,6 +26,7 @@ export class Material {
   private parentId: number;
   public organisation: string;
   public postProcessingTags: string;
+  public referenceEmail: string;
 
   constructor(sequenceNumber?: number, name?: string, changes?: string, steps?: string, qrCodeURL?: string,
               tags?: Tag[], materialIngredients?: MaterialIngredient[], saveStatus?: SaveStatus, type?: MaterialType, user?: User,

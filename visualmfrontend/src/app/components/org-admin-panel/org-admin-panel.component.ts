@@ -24,7 +24,7 @@ export class OrgAdminPanelComponent implements OnInit {
   // Pending Approval
   pendingMaterials: Material[] = [];
   pendingDataSource: MatTableDataSource<Material>;
-  pendingColumns: string[] = ['sequenceNumber', 'name', 'creationDate', 'user', 'action'];
+  pendingColumns: string[] = ['sequenceNumber', 'name', 'creationDate', 'user', 'referenceEmail', 'action'];
 
   // Label
   materials: Material[] = [];

@@ -49,6 +49,9 @@ public class Material {
     @NotBlank
     private String reference;
 
+    @Column(name = "reference_email")
+    private String referenceEmail;
+
     @Column(name = "overview_url")
     private String overviewURL;
 
@@ -230,6 +233,14 @@ public class Material {
 
     public void setReference(String reference) {
         this.reference = reference;
+    }
+
+    public String getReferenceEmail() {
+        return referenceEmail;
+    }
+
+    public void setReferenceEmail(String referenceEmail) {
+        this.referenceEmail = referenceEmail;
     }
 
     public String getCloseUpURL() {

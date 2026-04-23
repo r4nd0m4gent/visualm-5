@@ -167,7 +167,7 @@ public class MaterialsController {
         Material savedMaterial = this.insertMaterial(material, null);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{sequenceNumber}").buildAndExpand(savedMaterial.getSequenceNumber()).toUri();
 
-        return ResponseEntity.created(uri).body(savedMaterial);
+        return ResponseEntity.created(uri).build();
     }
 
     @PutMapping("/{sequenceNumber}")
@@ -218,7 +218,7 @@ public class MaterialsController {
         }
 
         Material savedMaterial = this.insertMaterial(material, foundMaterial);
-        return ResponseEntity.ok().body(savedMaterial);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/published")

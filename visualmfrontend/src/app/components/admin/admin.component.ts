@@ -30,7 +30,7 @@ export class AdminComponent implements OnInit {
   public reports: Report[] = [];
   public pendingMaterials: Material[] = [];
   pendingDataSource: MatTableDataSource<Material>;
-  pendingColumns: string[] = ['sequenceNumber', 'name', 'creationDate', 'user', 'action'];
+  pendingColumns: string[] = ['sequenceNumber', 'name', 'creationDate', 'user', 'referenceEmail', 'action'];
   pendingDataColumns: string[] = this.pendingColumns;
   materialDataSource: MatTableDataSource<Material>;
   materialColumns: string[] = ['sequenceNumberPublished', 'name', 'saveStatus', 'creationDate','user', 'action'];

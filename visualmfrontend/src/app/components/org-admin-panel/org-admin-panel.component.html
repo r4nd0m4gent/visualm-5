@@ -43,7 +43,13 @@
             </ng-container>
             <ng-container matColumnDef="user">
               <mat-header-cell *matHeaderCellDef>Author</mat-header-cell>
-              <mat-cell *matCellDef="let row">{{ row.user?.firstname }} {{ row.user?.lastname }}</mat-cell>
+              <mat-cell *matCellDef="let row">
+                {{ (row.reference && row.reference !== 'No references' && row.reference.startsWith('By ')) ? (row.reference.split(' - ')[0].replace('By ', '') || (row.user?.firstname + ' ' + row.user?.lastname)) : (row.user?.firstname + ' ' + row.user?.lastname) }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="referenceEmail">
+              <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
+              <mat-cell *matCellDef="let row">{{ row.referenceEmail || '—' }}</mat-cell>
             </ng-container>
             <ng-container matColumnDef="action">
               <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>

@@ -208,6 +208,7 @@ export class MaterialFormComponent implements OnInit {
     material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL || null);
     material.organisation = this.organisationName;
     material.postProcessingTags = this.selectedPostProcessingTags.join('|');
+    material.referenceEmail = this.materialForm.get('referenceEmail').value?.trim() || null;
 
     if (!this.overviewFileUpload.isValid() || !this.closeUpFileUpload.isValid()) {
       this.fileError = true;
@@ -215,9 +216,17 @@ export class MaterialFormComponent implements OnInit {
       return;
     }
 
+    const submitStatus = this.materialForm.get('status').value;
     this.loadingDone = false;
     this.materialService.save(material).subscribe(data => {
       this.creationFailed = false;
+      if (submitStatus === SaveStatus.PUBLISHED) {
+        this.snackBar.open('Request sent to the admin', 'Close', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+        });
+      }
       this.router.navigate(['/home']);
     }, error => {
       console.log(error);

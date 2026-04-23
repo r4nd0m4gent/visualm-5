@@ -149,6 +149,10 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
       referenceAuthorControl.updateValueAndValidity();
       referenceTitleControl.updateValueAndValidity();
       referenceYearControl.updateValueAndValidity();
+
+      const referenceEmailControl: AbstractControl = this.materialForm.get('referenceEmail');
+      referenceEmailControl.setValue(this.material.referenceEmail || null);
+      referenceEmailControl.updateValueAndValidity();
     }
 
     this.materialForm.get('changes').setValue(this.material.getChanges());
@@ -250,10 +254,18 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL ? this.closeUpFileUpload.mediaDataURL : null);
     material.organisation = this.organisationName;
     material.postProcessingTags = this.selectedPostProcessingTags.join('|');
+    material.referenceEmail = this.materialForm.get('referenceEmail').value?.trim() || null;
     material.setSequenceNumberPublished(this.material.getSequenceNumberPublished());
 
     this.materialService.update(material.getSequenceNumber(), material).subscribe(data => {
       this.creationFailed = false;
+      if (this.materialForm.get('status').value === SaveStatus.PUBLISHED) {
+        this.snackBar.open('Request sent to the admin', 'Close', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+        });
+      }
       this.router.navigate(['material', this.material.getSequenceNumber()]);
     }, error => {
       console.log(error);

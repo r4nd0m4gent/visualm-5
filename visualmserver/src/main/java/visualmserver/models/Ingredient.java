@@ -13,7 +13,7 @@ import java.util.Set;
 public class Ingredient {
     @NotNull
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITYTITY)
     private int id;
 
     @NotBlank(message = "Name cannot be empty.")
