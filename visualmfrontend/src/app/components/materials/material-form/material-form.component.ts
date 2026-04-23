@@ -216,7 +216,6 @@ export class MaterialFormComponent implements OnInit {
     const submitStatus = this.materialForm.get('status').value;
     this.loadingDone = false;
     this.materialService.save(material).subscribe(data => {
-      this.creationFailed = false;
       if (submitStatus === SaveStatus.PUBLISHED) {
         this.snackBar.open('Request sent to the admin', 'Close', {
           duration: 5000,

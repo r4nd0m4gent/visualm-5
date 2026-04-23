@@ -239,7 +239,6 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     }
 
     if (!this.overviewFileUpload.isValid() || !this.closeUpFileUpload.isValid()) {
-      this.fileError = true;
       this.popupPublish = false;
       this.onSubmitEdit = false;
       this.loadingEditDone = true;
@@ -258,7 +257,6 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     material.setSequenceNumberPublished(this.material.getSequenceNumberPublished());
 
     this.materialService.update(material.getSequenceNumber(), material).subscribe(data => {
-      this.creationFailed = false;
       if (this.materialForm.get('status').value === SaveStatus.PUBLISHED) {
         this.snackBar.open('Request sent to the admin', 'Close', {
           duration: 5000,
