@@ -273,10 +273,6 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
         duration: 7000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',
-      })ing went wrong. Please try again.', 'Close', {
-        duration: 7000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
       });
       this.popupPublish = false;
       this.onSubmitEdit = false;
