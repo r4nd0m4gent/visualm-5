@@ -33,6 +33,7 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
   public closeUpImagePreview: string;
   loadingEditDone:boolean = true;
   onSubmitEdit:boolean = false;
+  public creationFailed = false;
 
   constructor(protected materialService: MaterialsService, protected ingredientService: IngredientService,
               protected router: Router, protected userService: UserService, protected authService: AuthService,
@@ -55,11 +56,7 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
           this.material = Material.trueCopy(material);
 
           // Not allowed to edit published labels. Duplicate published/draft labels are allowed
-          if (this.material.getSaveStatus() === SaveStatus.PUBLISHED && !this.isDuplicateAction) {
-            if (!this.authService.isAdmin()) {
-              this.router.navigate(['/not-found']);
-            }
-          }
+          // Admin check removed — edit is accessible without login
 
           this.user = User.trueCopy(this.material.getUser());
 
@@ -147,6 +144,10 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
       referenceAuthorControl.updateValueAndValidity();
       referenceTitleControl.updateValueAndValidity();
       referenceYearControl.updateValueAndValidity();
+
+      if (this.material.referenceEmail) {
+        this.materialForm.get('referenceEmail').setValue(this.material.referenceEmail);
+      }
     }
 
     this.materialForm.get('changes').setValue(this.material.getChanges());
@@ -184,8 +185,8 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
 
     if (this.isDuplicateAction) {
       // Get image from the label that was requested to duplicate
-      const overviewURL = this.material.getOverviewURL() ? `data:image/png;base64,${this.material.getOverviewURL()}` : null;
-      const closeUpURL = this.material.getCloseUpURL() ? `data:image/png;base64,${this.material.getCloseUpURL()}` : null;
+      const overviewURL = this.material.getOverviewURL() ? this.material.getOverviewURL() : null;
+      const closeUpURL = this.material.getCloseUpURL() ? this.material.getCloseUpURL() : null;
 
       // Overwrite any images if no images have been uploaded with the input
       this.overviewFileUpload.mediaDataURL = this.overviewFileUpload.mediaDataURL ? this.overviewFileUpload.mediaDataURL : overviewURL;
@@ -287,5 +288,17 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
         this.material.setCloseUpURL(null);
       }
     }, 200);
+  }
+
+  deleteOverviewImage(): void {
+    this.material.setOverviewURL(null);
+    this.overviewImagePreview = null;
+    this.overviewFileUpload.mediaDataURL = null;
+  }
+
+  deleteCloseUpImage(): void {
+    this.material.setCloseUpURL(null);
+    this.closeUpImagePreview = null;
+    this.closeUpFileUpload.mediaDataURL = null;
   }
 }

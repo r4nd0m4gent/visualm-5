@@ -106,6 +106,7 @@ export class MaterialFormComponent implements OnInit {
       'ingredient': new FormControl(null, this.emptyIngredients.bind(this)),
       'ingredientUnit': new FormControl('gr'),
       'amount': new FormControl(null, Validators.pattern('^[0-9]*$')),
+      'referenceEmail': new FormControl(null, Validators.email),
       'status': new FormControl(SaveStatus.DRAFT, Validators.required),
       'type': new FormControl(null, Validators.required)
     });

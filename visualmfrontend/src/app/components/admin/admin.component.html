@@ -57,7 +57,7 @@
 
   <mat-tab>
     <ng-template mat-tab-label>
-      Label
+      Submissions
     </ng-template>
 
 
@@ -91,7 +91,6 @@
     </div>
 
     <div class="admin-data">
-
       <mat-table #sortMaterial="matSort" [dataSource]="materialDataSource" matSort>
         <ng-container matColumnDef="sequenceNumberPublished">
           <mat-header-cell *matHeaderCellDef mat-sort-header> Sequence Number</mat-header-cell>
@@ -122,13 +121,13 @@
           <mat-header-cell *matHeaderCellDef> Action</mat-header-cell>
           <mat-cell *matCellDef="let element">
             <a mat-icon-button matTooltip="View label"
-               routerLink="/material/{{ element.sequenceNumber }}">
+               [routerLink]="['/material', element.sequenceNumber]">
               <img src="assets/icons/eye.svg" height="24">
             </a> |
-            <a mat-icon-button matTooltip="Edit label" routerLink="/materials/edit/{{ element.sequenceNumber }}">
+            <a mat-icon-button matTooltip="Edit label" [routerLink]="['/materials/edit', element.sequenceNumber]">
               <img src="assets/icons/edit.svg">
             </a> |
-            <a mat-icon-button matTooltip="Delete report" (click)="onDeletePopup(element)">
+            <a mat-icon-button matTooltip="Delete" (click)="onDeletePopup(element)" style="cursor:pointer">
               <img src="assets/icons/delete.svg">
             </a>
             <div *ngIf="deletePopup" class="popupUser">

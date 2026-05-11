@@ -156,13 +156,13 @@
           <h1 class="h1">Label Media: </h1>
           <div class="img-overview-container" *ngIf="material?.getOverviewURL()">
             <h2 class="h2">Overview:</h2>
-            <img src="data:image/png;base64,{{ material?.getOverviewURL() }}" class="img-fluid"
+            <img [src]="material?.getOverviewURL()" class="img-fluid"
                  alt="Uploaded media from the user" width="50%">
           </div>
 
           <div class="img-close-up-container" *ngIf="material?.getCloseUpURL()">
             <h2 class="h2">Close up:</h2>
-            <img src="data:image/png;base64,{{ material?.getCloseUpURL() }}" class="img-fluid"
+            <img [src]="material?.getCloseUpURL()" class="img-fluid"
                  alt="Uploaded media from the user" width="50%">
           </div>
         </div>

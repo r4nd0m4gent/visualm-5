@@ -2,10 +2,10 @@ package visualmserver.models;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -85,6 +85,9 @@ public class Material {
 
     @Column(name = "parent_sequence_number")
     private Long parentId;
+
+    @Column(name = "organisation")
+    private String organisation;
 
     public Material() {
     }
@@ -216,5 +219,13 @@ public class Material {
 
     public void setCloseUpURL(String closeUpURL) {
         this.closeUpURL = closeUpURL;
+    }
+
+    public String getOrganisation() {
+        return organisation;
+    }
+
+    public void setOrganisation(String organisation) {
+        this.organisation = organisation;
     }
 }

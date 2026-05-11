@@ -7,9 +7,6 @@
         <div class="row">
           <div class="col-md-4">
 
-            <img src="{{this.logoPath}}" style="width: 10rem;" [ngClass]="{'is-hidden': bitlyURL }"/>
-            <p *ngIf="organisationName" class="mt-1 small" [ngClass]="{'is-hidden': bitlyURL }">{{ organisationName }}</p>
-
             <ngx-qrcode
               [ngClass]="{'is-hidden': !bitlyURL }"
               [elementType]="elementType"
@@ -266,6 +263,12 @@
                           'is-valid': materialForm.get('referenceYear').valid && materialForm.get('referenceYear').touched}"/>
               </div>
 
+            </div>
+
+            <div class="form-row mb-2" [ngClass]="{'is-hidden': materialForm.get('variationOn').value}">
+              <div class="col-md-12">
+                <input class="form-control rounded-pill" type="email" placeholder="Contact email (optional)" formControlName="referenceEmail"/>
+              </div>
             </div>
             <small class="small ml-2 smallTextError" *ngIf="!materialForm.get('referenceAuthor').valid && materialForm.get('referenceAuthor').touched">
               &bull; Please enter the name of the author.

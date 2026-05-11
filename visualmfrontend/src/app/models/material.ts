@@ -24,6 +24,9 @@ export class Material {
   private type: MaterialType;
   private user: User;
   private parentId: number;
+  public organisation: string;
+  public postProcessingTags: string;
+  public referenceEmail: string;
 
   constructor(sequenceNumber?: number, name?: string, changes?: string, steps?: string, qrCodeURL?: string,
               tags?: Tag[], materialIngredients?: MaterialIngredient[], saveStatus?: SaveStatus, type?: MaterialType, user?: User,
@@ -101,6 +104,14 @@ export class Material {
 
   public getUser(): User {
     return this.user;
+  }
+
+  public getOrganisation(): string {
+    return this.organisation;
+  }
+
+  public getPostProcessingTags(): string {
+    return this.postProcessingTags;
   }
 
   public getQRCodeURL(): string {

@@ -72,8 +72,9 @@ export class AdminComponent implements OnInit {
   @ViewChild(MatTableDataSource, {static: true}) table: MatTableDataSource<any>;
 
   constructor( private materialsService: MaterialsService, private userService: UserService,
-              private router: Router, public dialog: MatDialog, private authService: AuthService, private reportService: ReportService,
-              private configService: AppConfigService, private snackBar: MatSnackBar) {
+              private router: Router, public dialog: MatDialog, private authService: AuthService,
+              private reportService: ReportService, private configService: AppConfigService,
+              private snackBar: MatSnackBar) {
     this.config = {
       email_suffix: '',
       organisation: '',
@@ -95,18 +96,19 @@ export class AdminComponent implements OnInit {
       'organisation': ''
     };
 
-     this.getUserProfile();
+     if (this.authService.currentUser) {
+       this.getUserProfile();
+     }
 
     this.userService.getAll().subscribe(users => {
       users.forEach((user) => {
         const currentUser: User = Object.assign(new User(), user);
         this.users.push(currentUser);
-
       });
       this.userDataSource = new MatTableDataSource<User>(this.users);
       this.userDataSource.paginator = this.paginatorUser;
       this.userDataSource.sort = this.sortUser;
-    });
+    }, err => { console.error('[Admin] userService.getAll error:', err.status); });
 
     this.materialsService.getAll().subscribe(materials => {
       materials.forEach((material) => {
@@ -115,9 +117,6 @@ export class AdminComponent implements OnInit {
       });
 
       this.materialDataSource = new MatTableDataSource<Material>(this.materials);
-      this.materialDataSource.paginator = this.paginatormaterial;
-      this.materialDataSource.sort = this.sortMaterial;
-
       this.materialDataSource.filterPredicate = (data, filter: string) => {
         const accumulator = (currentTerm, key) => {
           return this.nestedFilterCheck(currentTerm, data, key);
@@ -125,8 +124,13 @@ export class AdminComponent implements OnInit {
         const dataStr = Object.keys(data).reduce(accumulator, '').toLowerCase();
         const transformedFilter = filter.trim().toLowerCase();
         return dataStr.indexOf(transformedFilter) !== -1;
-      }
-    });
+      };
+      // Use setTimeout so the Submissions tab's ViewChild paginator/sort are rendered before assignment
+      setTimeout(() => {
+        this.materialDataSource.paginator = this.paginatormaterial;
+        this.materialDataSource.sort = this.sortMaterial;
+      });
+    }, err => { console.error('[Admin] materialsService.getAll error:', err.status); });
 
     this.reportService.getAll().subscribe(reports => {
       reports.forEach((report) => {
@@ -137,7 +141,7 @@ export class AdminComponent implements OnInit {
       this.reportDataSource = new MatTableDataSource<Report>(this.reports);
       this.reportDataSource.paginator = this.paginatorReport;
       this.reportDataSource.sort = this.sortReport;
-    });
+    }, err => { console.error('[Admin] reportService.getAll error:', err.status); });
 
     this.loadPendingMaterials();
 
@@ -146,7 +150,7 @@ export class AdminComponent implements OnInit {
       this.config.email_suffix = config.email_suffix;
       this.config.organisation = config.organisation;
       this.config.logo_path = config.logo_path;
-    });
+    }, err => { console.error('[Admin] configService.getAll error:', err.status); });
   }
 
   nestedFilterCheck(search, data, key) {
@@ -263,7 +267,7 @@ export class AdminComponent implements OnInit {
       this.user = Object.assign(new User(), data);
 
     }, error => {
-      console.log(error);
+      console.error('[Admin] getUserProfile error:', error);
     });
   }
 
@@ -278,7 +282,7 @@ export class AdminComponent implements OnInit {
       this.pendingDataSource = new MatTableDataSource<Material>(this.pendingMaterials);
       this.pendingDataSource.paginator = this.paginatorPending;
       this.pendingDataSource.sort = this.sortPending;
-    });
+    }, err => { console.error('[Admin] getPending error (requires auth):', err.status); });
   }
 
   onApprove(element: Material): void {
@@ -381,7 +385,7 @@ export class AdminComponent implements OnInit {
         this.reportDataSource.data[this.reportDataSource.data.indexOf(element)] = report;
         this.reportDataSource._updateChangeSubscription();
       }, error => {
-        console.log(error);
+        console.error('[Admin] reportService.update error:', error);
       });
     } else {
       const report: Report = Object.assign(new Report(element.id, element.reportMessage, false, element.user, element.material));
@@ -390,7 +394,7 @@ export class AdminComponent implements OnInit {
         this.reportDataSource.data[this.reportDataSource.data.indexOf(element)] = report;
         this.reportDataSource._updateChangeSubscription();
       }, error => {
-        console.log(error);
+        console.error('[Admin] reportService.update error:', error);
       });
     }
   }

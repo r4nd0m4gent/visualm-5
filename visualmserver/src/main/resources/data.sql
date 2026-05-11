@@ -1,3 +1,22 @@
+-- -----------------------------------------------------------------------
+-- Cleanup: remove all records whose name contains 'test' (case-insensitive).
+-- These DELETEs must be run before the INSERTs so FK constraints are
+-- satisfied. For an existing MySQL deployment, run these statements
+-- manually against the live database.
+-- -----------------------------------------------------------------------
+DELETE FROM `material_has_ingredient`
+    WHERE `sequence_number` IN (
+        SELECT `sequence_number` FROM `material` WHERE LOWER(`name`) LIKE '%test%');
+
+DELETE FROM `material_has_tag`
+    WHERE `sequence_number` IN (
+        SELECT `sequence_number` FROM `material` WHERE LOWER(`name`) LIKE '%test%');
+
+DELETE FROM `material` WHERE LOWER(`name`) LIKE '%test%';
+
+DELETE FROM `ingredient` WHERE LOWER(`name`) LIKE '%test%';
+
+-- -----------------------------------------------------------------------
 -- Insert Tags
 INSERT INTO `tag` (`id`,`name`) VALUES (1,'VEGAN');
 INSERT INTO `tag` (`id`,`name`) VALUES (2,'RENEWABLE');
