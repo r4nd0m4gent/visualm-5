@@ -132,10 +132,6 @@ public class OrgAdminController {
 
         List<Material> materials = materialsRepository.getMaterialsByOrganisationAndSaveStatus(
                 admin.getOrganisation(), SaveStatus.PENDING_APPROVAL);
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-        }
         return ResponseEntity.ok(materials);
     }
 
@@ -168,8 +164,6 @@ public class OrgAdminController {
         material.setSaveStatus(SaveStatus.PUBLISHED);
 
         Material savedMaterial = materialsRepository.save(material);
-        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
-        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
         return ResponseEntity.ok(savedMaterial);
     }
 
@@ -191,8 +185,6 @@ public class OrgAdminController {
 
         material.setSaveStatus(SaveStatus.DRAFT);
         Material savedMaterial = materialsRepository.save(material);
-        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
-        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
         return ResponseEntity.ok(savedMaterial);
     }
 
@@ -207,10 +199,6 @@ public class OrgAdminController {
         }
 
         List<Material> materials = materialsRepository.getMaterialsByOrganisation(admin.getOrganisation());
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-        }
         return ResponseEntity.ok(materials);
     }
 

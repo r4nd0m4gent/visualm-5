@@ -50,15 +50,8 @@ public class MaterialsController {
     private String frontendUrl;
 
     @GetMapping
-    public List<Material> getAllMaterials() throws IOException {
-        List<Material> materials = this.materialsRepository.findAll();
-
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-        }
-
-        return materials;
+    public List<Material> getAllMaterials() {
+        return this.materialsRepository.findAll();
     }
 
     @GetMapping("/{sequenceNumber}")
@@ -68,9 +61,6 @@ public class MaterialsController {
         if (material == null) {
             throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
         }
-
-        material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-        material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
 
         return material;
     }
@@ -83,9 +73,6 @@ public class MaterialsController {
             throw new ResourceNotFoundException(String.format("Material not found with sequenceNumberPublished=%d", sequenceNumberPublished));
         }
 
-        material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-        material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-
         return material;
     }
 
@@ -93,11 +80,6 @@ public class MaterialsController {
     public List<Material> getMaterialFromUserId(@PathVariable int id) throws IOException {
         User user = this.userRepository.getUserById(id);
         List<Material> materials = this.materialsRepository.getMaterialsByUser(user);
-
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-        }
 
         return materials;
     }
@@ -203,14 +185,14 @@ public class MaterialsController {
             notifyAdminsOnSubmission(material);
         }
 
-        if (material.getOverviewURL() != null) {
+        if (material.getOverviewURL() != null && material.getOverviewURL().startsWith("data:")) {
             String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), String.format("/images/material/%s/", material.getUser().getId()));
             material.setOverviewURL(savedImgPath);
         } else {
             material.setOverviewURL(foundMaterial.getOverviewURL());
         }
 
-        if (material.getCloseUpURL() != null) {
+        if (material.getCloseUpURL() != null && material.getCloseUpURL().startsWith("data:")) {
             String savedImgPath = FileUploadHandler.upload(material.getCloseUpURL(), String.format("/images/material/%s/", material.getUser().getId()));
             material.setCloseUpURL(savedImgPath);
         } else {
@@ -222,30 +204,16 @@ public class MaterialsController {
     }
 
     @GetMapping("/published")
-    public List<Material> getPublishedMaterials() throws IOException {
-        List<Material> materials = this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PUBLISHED);
-
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-        }
-
-        return materials;
+    public List<Material> getPublishedMaterials() {
+        return this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PUBLISHED);
     }
 
     @GetMapping("/pending")
-    public List<Material> getPendingMaterials(@RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
+    public List<Material> getPendingMaterials(@RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) {
         if (!tokenInfo.isAdmin()) {
             throw new AuthorizationException("Only administrators can view pending materials.");
         }
-
-        List<Material> materials = this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
-
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-        }
-
-        return materials;
+        return this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
     }
 
     @PutMapping("/approve/{sequenceNumber}")
@@ -276,8 +244,6 @@ public class MaterialsController {
         material.setSaveStatus(SaveStatus.PUBLISHED);
 
         Material savedMaterial = this.materialsRepository.save(material);
-        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
-        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
 
         return ResponseEntity.ok().body(savedMaterial);
     }
@@ -298,8 +264,6 @@ public class MaterialsController {
         material.setSaveStatus(SaveStatus.DRAFT);
 
         Material savedMaterial = this.materialsRepository.save(material);
-        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
-        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
 
         return ResponseEntity.ok().body(savedMaterial);
     }
