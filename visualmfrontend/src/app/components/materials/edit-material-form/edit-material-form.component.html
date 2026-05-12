@@ -300,6 +300,12 @@
               </div>
             </div>
 
+            <div class="form-row mb-2" [ngClass]="{'is-hidden': materialForm.get('variationOn').value}">
+              <div class="col-md-12">
+                <input class="form-control rounded-pill" type="email" placeholder="Contact email (optional)" formControlName="referenceEmail"/>
+              </div>
+            </div>
+
             <small class="small ml-2 smallTextError"
                    *ngIf="!materialForm.get('referenceEmail').valid && materialForm.get('referenceEmail').touched">
               &bull; Please enter a valid email address.
@@ -373,8 +379,26 @@
         <div class="row">
           <div class="col-md-12">
             <h4>Overview image:</h4>
+            <div *ngIf="material?.getOverviewURL()" class="mb-2">
+              <p class="mb-1 text-muted small">Current image:</p>
+              <div class="d-flex align-items-center">
+                <img [src]="material?.getOverviewURL()" style="max-height: 120px; border: 1px solid #ccc; border-radius: 4px;" alt="Current overview image"/>
+                <button type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteOverviewImage()">
+                  <img src="assets/icons/close.svg" height="14"/> Delete image
+                </button>
+              </div>
+            </div>
             <app-file-upload #overviewImg (change)="updateImagePreview(true)"></app-file-upload>
             <h4>Close up image:</h4>
+            <div *ngIf="material?.getCloseUpURL()" class="mb-2">
+              <p class="mb-1 text-muted small">Current image:</p>
+              <div class="d-flex align-items-center">
+                <img [src]="material?.getCloseUpURL()" style="max-height: 120px; border: 1px solid #ccc; border-radius: 4px;" alt="Current close-up image"/>
+                <button type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteCloseUpImage()">
+                  <img src="assets/icons/close.svg" height="14"/> Delete image
+                </button>
+              </div>
+            </div>
             <app-file-upload #closeUpImg (change)="updateImagePreview(false)"></app-file-upload>
           </div>
         </div>
@@ -383,8 +407,11 @@
 
         <div class="row">
           <div class="col-md-12 text-center">
-            <p>Maker: {{ user?.getFirstname() + " " + user?.getLastname()}} - {{creationDate | date:'dd-MM-yyyy'}}
-              - {{ user?.getEmail() }}</p>
+            <p>
+              <ng-container *ngIf="materialForm.get('referenceAuthor').value || materialForm.get('referenceEmail').value">
+                Maker: {{ materialForm.get('referenceAuthor').value }}<span *ngIf="materialForm.get('referenceAuthor').value && materialForm.get('referenceEmail').value"> - </span>{{ materialForm.get('referenceEmail').value }}
+              </ng-container>
+            </p>
           </div>
         </div>
       </div>
@@ -397,7 +424,7 @@
 
             <div class="img-overview-container" *ngIf="material?.getOverviewURL() || overviewImagePreview">
               <h2 class="h2">Overview:</h2>
-              <img src="data:image/png;base64,{{ material?.getOverviewURL() }}" *ngIf="material?.getOverviewURL()"
+              <img [src]="material?.getOverviewURL()" *ngIf="material?.getOverviewURL()"
                    class="img-fluid" alt="Uploaded media from the user" width="50%">
               <img src="{{ overviewImagePreview }}" *ngIf="overviewImagePreview" class="img-fluid"
                    alt="Uploaded media from the user"
@@ -406,7 +433,7 @@
 
             <div class="img-close-up-container" *ngIf="material?.getCloseUpURL() || closeUpImagePreview">
               <h2 class="h2">Close up:</h2>
-              <img src="data:image/png;base64,{{ material?.getCloseUpURL() }}" *ngIf="material?.getCloseUpURL()"
+              <img [src]="material?.getCloseUpURL()" *ngIf="material?.getCloseUpURL()"
                    class="img-fluid" alt="Uploaded media from the user" width="50%">
               <img src="{{ closeUpImagePreview }}" *ngIf="closeUpImagePreview" class="img-fluid"
                    alt="Uploaded media from the user"
@@ -570,9 +597,11 @@
       <div class="row">
         <div class="col-md-12 text-center makerr">
           <hr class="marker markerBottom"/>
-          <p class="maker" [style.color]="labelTemplate?.secondaryColor || 'black'">Maker: {{ user?.getFirstname() + " " + user?.getLastname() }}
-            - {{ creationDate | date:'dd-MM-yyyy' }} - {{ user?.getEmail() }}
-            <span *ngIf="materialForm.get('referenceEmail').value"> - {{ materialForm.get('referenceEmail').value }}</span></p>
+          <p class="maker" [style.color]="labelTemplate?.secondaryColor || 'black'">
+            <ng-container *ngIf="materialForm.get('referenceAuthor').value || materialForm.get('referenceEmail').value">
+              Maker: {{ materialForm.get('referenceAuthor').value }}<span *ngIf="materialForm.get('referenceAuthor').value && materialForm.get('referenceEmail').value"> - </span>{{ materialForm.get('referenceEmail').value }}
+            </ng-container>
+          </p>
         </div>
       </div>
     </div>

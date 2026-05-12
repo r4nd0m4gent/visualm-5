@@ -29,8 +29,9 @@ public class EmailSenderService {
             helper.setTo(to);
             helper.setText(msg, true);
             mailSender.send(message);
-        } catch (MessagingException ex) {
-
+        } catch (Exception ex) {
+            // Log but do not fail the submission if email delivery fails
+            System.err.println("Email send failed: " + ex.getMessage());
         }
     }
 

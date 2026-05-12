@@ -106,6 +106,10 @@ export class Material {
     return this.user;
   }
 
+  public getOrganisation(): string {
+    return this.organisation;
+  }
+
   public getQRCodeURL(): string {
     return this.qrCodeURL;
   }

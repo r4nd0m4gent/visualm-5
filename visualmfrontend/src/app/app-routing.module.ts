@@ -19,12 +19,14 @@ import {OrgAdminPanelComponent} from './components/org-admin-panel/org-admin-pan
 
 const routes: Routes = [
   {path: '', redirectTo: '/archive', pathMatch: 'full'},
+  {path: 'home', redirectTo: '/archive', pathMatch: 'full'},
   {path: 'archive', component: SearchComponent},
   {path: 'materials/create', component: MaterialFormComponent, canActivate: [AuthGuard]},
   {path: 'material/:sequence_number', component: MaterialComponent},
   {path: 'my-profile', component: ProfileComponent, canActivate: [AuthGuard]},
   {path: 'user/:id', component: ProfileComponent},
   {path: 'admin', component: AdminComponent, canActivate: [AuthGuard, AuthAdminGuard]},
+  {path: 'org-admin/access/:token', component: AdminComponent},
   {path: 'reset-password', component: ResetPasswordComponent},
   {path: 'verify-email', component: MailVerificationComponent},
   {path: 'materials/edit/:sequence_number', component: EditMaterialFormComponent},

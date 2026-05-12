@@ -104,7 +104,7 @@ export class MaterialFormComponent implements OnInit {
       'title': new FormControl(null, [Validators.required, Validators.maxLength(30),
         Validators.pattern(whitespaceCheck)]),
       'url': new FormControl(null, this.validURL.bind(this)),
-      'step': new FormControl(null, this.emptySteps.bind(this)),
+      'step': new FormControl(null),
       'changes': new FormControl(null, [Validators.pattern(whitespaceCheck), Validators.maxLength(80)]),
       'sequenceNumber': new FormControl(null),
       'variationOn': new FormControl(false),
@@ -112,7 +112,7 @@ export class MaterialFormComponent implements OnInit {
       'referenceEmail': new FormControl(null, Validators.email),
       'referenceTitle': new FormControl(null, [Validators.pattern(whitespaceCheck)]),
       'referenceYear': new FormControl(null, [Validators.pattern(new RegExp('\\d')), Validators.minLength(4)]),
-      'ingredient': new FormControl(null, this.emptyIngredients.bind(this)),
+      'ingredient': new FormControl(null),
       'ingredientUnit': new FormControl('gr'),
       'amount': new FormControl(null, Validators.pattern('^[0-9]*$')),
       'status': new FormControl(SaveStatus.DRAFT, Validators.required),
@@ -127,8 +127,12 @@ export class MaterialFormComponent implements OnInit {
     this.materialTypeValues = Object.values(MaterialType);
     this.materialTypeKeys = Object.keys(MaterialType);
 
-    this.userService.getUserProfile(this.authService.currentUser.getId()).subscribe(user => {
-      this.user = Object.assign(new User(), user);
+    this.userService.getAll().subscribe(users => {
+      if (users && users.length > 0) {
+        this.user = Object.assign(new User(), users[0]);
+      }
+    }, error => {
+      console.error('Failed to load users for anonymous submission:', error);
     });
   }
 

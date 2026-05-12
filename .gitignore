@@ -127,6 +127,9 @@ modules.xml
 #visualmfrontend/src/assets/images/material
 #visualmfrontend/src/assets/images/profile-picture
 
+# Archive images (large binary files — stored on server, not in git)
+images/
+
 # VS code
 .vscode/settings.json
 
