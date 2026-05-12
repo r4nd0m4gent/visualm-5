@@ -198,8 +198,24 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.getMaterialsByOrganisation(admin.getOrganisation());
-        return ResponseEntity.ok(materials);
+        return ResponseEntity.ok(materialsRepository.findAll());
+    }
+
+    /**
+     * API: Delete a material via org-admin token.
+     */
+    @DeleteMapping("/api/{token}/materials/{sequenceNumber}")
+    public ResponseEntity<Void> deleteMaterial(@PathVariable String token,
+                                               @PathVariable Long sequenceNumber) {
+        OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
+        if (admin == null) {
+            return ResponseEntity.status(403).build();
+        }
+        Long deleted = materialsRepository.deleteMaterialBySequenceNumber(sequenceNumber);
+        if (deleted == null || deleted == 0) {
+            throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
+        }
+        return ResponseEntity.ok().build();
     }
 
     /**
