@@ -61,8 +61,10 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
           this.user = User.trueCopy(this.material.getUser());
 
           if (this.isDuplicateAction) {
-            this.userService.getUserProfile(this.authService.currentUser.getId()).subscribe(user => {
-              this.user = User.trueCopy(user);
+            this.userService.getAll().subscribe(users => {
+              if (users && users.length > 0) {
+                this.user = Object.assign(new User(), users[0]);
+              }
             });
           }
 
