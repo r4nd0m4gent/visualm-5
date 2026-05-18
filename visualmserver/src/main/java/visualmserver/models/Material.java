@@ -16,7 +16,6 @@ public class Material {
     public static final int MAXIMUM_STEPS = 10;
     public static final int MAXIMUM_INGREDIENTS = 6;
 
-    @NotNull
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sequence_number")
