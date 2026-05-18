@@ -11,9 +11,8 @@ import java.util.Set;
 @Entity
 @Table(name = "report")
 public class Report {
-    @NotNull
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @NotBlank(message = "Report message cannot be empty.")

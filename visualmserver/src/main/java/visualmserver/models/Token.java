@@ -7,8 +7,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "token")
 public class Token {
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "token")
