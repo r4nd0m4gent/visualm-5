@@ -95,7 +95,10 @@
             </ng-container>
             <ng-container matColumnDef="name">
               <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
-              <mat-cell class="text-uppercase" *matCellDef="let row">{{ row.name }}</mat-cell>
+              <mat-cell class="text-uppercase" *matCellDef="let row">
+                {{ row.name }}
+                <img *ngIf="!row.overviewURL" src="assets/icons/close.svg" matTooltip="No image uploaded" height="14" style="margin-left:4px; opacity:0.5">
+              </mat-cell>
             </ng-container>
             <ng-container matColumnDef="saveStatus">
               <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>

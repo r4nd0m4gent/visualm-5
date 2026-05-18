@@ -123,7 +123,16 @@ export class MaterialFormComponent implements OnInit {
 
     this.materialTagValues = Object.values(MaterialTag);
     this.materialTagKeys = Object.keys(MaterialTag);
-    this.postProcessingTagValues = Object.values(PostProcessingTag);
+    // Hide VEGAN and LOCALLY_ABUNDANT from UI (kept in DB/enum)
+    const hiddenTagKeys = ['VEGAN', 'LOCALLY_ABUNDANT'];
+    const visibleIndices = this.materialTagKeys
+      .map((k, i) => hiddenTagKeys.includes(k) ? -1 : i)
+      .filter(i => i !== -1);
+    this.materialTagValues = visibleIndices.map(i => this.materialTagValues[i]);
+    this.materialTagKeys = visibleIndices.map(i => this.materialTagKeys[i]);
+
+    this.postProcessingTagValues = Object.values(PostProcessingTag)
+      .filter(v => v !== PostProcessingTag.NONE && v !== PostProcessingTag.OTHER);
     this.materialTypeValues = Object.values(MaterialType);
     this.materialTypeKeys = Object.keys(MaterialType);
 

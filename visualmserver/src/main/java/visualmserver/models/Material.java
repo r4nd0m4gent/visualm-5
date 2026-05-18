@@ -18,7 +18,7 @@ public class Material {
 
     @NotNull
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sequence_number")
     private Long sequenceNumber;
 

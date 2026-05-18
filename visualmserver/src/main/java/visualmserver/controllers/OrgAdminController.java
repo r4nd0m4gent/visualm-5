@@ -130,8 +130,7 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.getMaterialsByOrganisationAndSaveStatus(
-                admin.getOrganisation(), SaveStatus.PENDING_APPROVAL);
+        List<Material> materials = materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
         return ResponseEntity.ok(materials);
     }
 
