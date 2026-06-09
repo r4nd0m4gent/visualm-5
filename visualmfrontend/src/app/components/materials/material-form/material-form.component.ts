@@ -136,13 +136,11 @@ export class MaterialFormComponent implements OnInit {
     this.materialTypeValues = Object.values(MaterialType);
     this.materialTypeKeys = Object.keys(MaterialType);
 
-    this.userService.getAll().subscribe(users => {
-      if (users && users.length > 0) {
-        this.user = Object.assign(new User(), users[0]);
-      }
-    }, error => {
-      console.error('Failed to load users for anonymous submission:', error);
-    });
+    if (this.authService.isLoggedIn()) {
+      this.userService.getUserProfile(this.authService.currentUser.getId()).subscribe(user => {
+        this.user = Object.assign(new User(), user);
+      });
+    }
   }
 
   private setVariationOnValidators(): void {

@@ -143,9 +143,14 @@
 
       <div id="creator" class="row">
         <div *ngIf="loadingDone" class="col-md-12 text-center">
-          <p>Maker: {{ user?.getFirstname() + " " + user?.getLastname()}}
-            - {{material?.getCreationDate() | date:'dd-MM-yyyy'}} <b style="font-weight: normal" *ngIf="isLoggedIn()">
-              - {{ user?.getEmail() }}</b></p>
+          <p *ngIf="material?.referenceEmail">
+            Maker: {{ makerName }}<ng-container *ngIf="makerName"> - </ng-container>{{material?.getCreationDate() | date:'dd-MM-yyyy'}} - {{ material?.referenceEmail }}
+          </p>
+          <p *ngIf="!material?.referenceEmail">
+            Maker: {{ user?.getFirstname() + " " + user?.getLastname()}}
+            - {{material?.getCreationDate() | date:'dd-MM-yyyy'}}<b style="font-weight: normal" *ngIf="isLoggedIn()">
+              - {{ user?.getEmail() }}</b>
+          </p>
         </div>
       </div>
     </div>
@@ -304,7 +309,9 @@
       <div class="row">
         <div class="col-md-12 text-center makerr">
           <hr class="marker markerBottom"/>
-          <p class="maker" [style.color]="labelTemplate?.secondaryColor || 'black'">
+          <p class="maker" [style.color]="labelTemplate?.secondaryColor || 'black'" *ngIf="material?.referenceEmail">
+            Maker: {{ makerName }}<ng-container *ngIf="makerName"> - </ng-container>{{material?.getCreationDate() | date:'dd-MM-yyyy'}} - {{ material?.referenceEmail }}</p>
+          <p class="maker" [style.color]="labelTemplate?.secondaryColor || 'black'" *ngIf="!material?.referenceEmail">
             Maker: {{ user?.getFirstname() + " " + user?.getLastname()}}
             - {{material?.getCreationDate() | date:'dd-MM-yyyy'}} - {{ user?.getEmail() }}</p>
         </div>

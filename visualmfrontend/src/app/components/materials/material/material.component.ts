@@ -255,6 +255,18 @@ export class MaterialComponent implements OnInit, OnDestroy {
     });
   }
 
+  get makerName(): string {
+    if (this.material?.referenceEmail) {
+      const ref = this.material?.getReference();
+      if (ref && ref.startsWith('By ')) {
+        const name = ref.substring(3).split(' - ')[0]?.trim();
+        if (name) { return name; }
+      }
+      return '';
+    }
+    return this.user ? `${this.user.getFirstname()} ${this.user.getLastname()}` : '';
+  }
+
   ngOnDestroy(): void {
     this.paramSubscription.unsubscribe();
   }
