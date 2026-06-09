@@ -121,10 +121,7 @@ public class MaterialsController {
         if (submitter == null && tokenInfo.getId() > 0) {
             submitter = userRepository.getUserById((int) tokenInfo.getId());
         }
-        if (submitter == null) {
-            // Fall back to the first available user in the DB
-            submitter = userRepository.findAll().stream().findFirst().orElse(null);
-        }
+        // Anonymous submission — user_id is nullable; no fallback to users[0]
         material.setUser(submitter);
 
         // Non-admin users cannot publish directly — route through approval
@@ -136,13 +133,17 @@ public class MaterialsController {
             notifyAdminsOnSubmission(material);
         }
 
+        String imageFolder = submitter != null
+                ? String.format("/images/material/%s/", submitter.getId())
+                : "/images/material/anonymous/";
+
         if (material.getOverviewURL() != null) {
-            String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), String.format("/images/material/%s/", material.getUser().getId()));
+            String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), imageFolder);
             material.setOverviewURL(savedImgPath);
         }
 
         if (material.getCloseUpURL() != null) {
-            String savedImgPath = FileUploadHandler.upload(material.getCloseUpURL(), String.format("/images/material/%s/", material.getUser().getId()));
+            String savedImgPath = FileUploadHandler.upload(material.getCloseUpURL(), imageFolder);
             material.setCloseUpURL(savedImgPath);
         }
 

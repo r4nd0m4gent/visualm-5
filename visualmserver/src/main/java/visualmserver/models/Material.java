@@ -82,7 +82,7 @@ public class Material {
     private MaterialType type;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @Column(name = "parent_sequence_number")
