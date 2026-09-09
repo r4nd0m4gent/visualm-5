@@ -87,7 +87,13 @@ public class FileUploadHandler {
     }
 
     public static String getFileBase64(String path) throws IOException {
-        File requestedFile = new File(String.format("%s%s", PARENT_DIR, path));
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+
+        File requestedFile = path.startsWith(PARENT_DIR + File.separator)
+                ? new File(path)
+                : new File(String.format("%s%s", PARENT_DIR, path));
 
         if (requestedFile.exists()) {
             byte[] encoded = Files.readAllBytes(requestedFile.toPath());

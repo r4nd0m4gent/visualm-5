@@ -34,6 +34,18 @@ export class SearchComponent implements OnInit {
   constructor(private materialService: MaterialsService, private activatedRoute: ActivatedRoute, private router: Router) {
   }
 
+  public getImageSource(imageValue: string): string {
+    if (!imageValue) {
+      return '';
+    }
+
+    if (imageValue.startsWith('data:') || imageValue.startsWith('/')) {
+      return imageValue;
+    }
+
+    return `data:image/png;base64,${imageValue}`;
+  }
+
   ngOnInit(): void {
     this.materialService.getAll().subscribe(materials => {
       materials.forEach((material) => {

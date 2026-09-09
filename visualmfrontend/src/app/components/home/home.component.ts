@@ -29,4 +29,16 @@ export class HomeComponent implements OnInit {
       });
     });
   }
+
+  public getImageSource(imageValue: string): string {
+    if (!imageValue) {
+      return '';
+    }
+
+    if (imageValue.startsWith('data:') || imageValue.startsWith('/')) {
+      return imageValue;
+    }
+
+    return `data:image/png;base64,${imageValue}`;
+  }
 }

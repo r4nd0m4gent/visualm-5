@@ -1,5 +1,5 @@
 .banner {
-  background-image: url('src/assets/images/frontpage-img.jpg');
+  background-image: url('/assets/images/frontpage-img.jpg');
   height: 25vh;
   background-repeat: no-repeat;
   background-position: center;

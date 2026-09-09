@@ -62,6 +62,18 @@ export class MaterialComponent implements OnInit, OnDestroy {
     });
   }
 
+  public getImageSource(imageValue: string): string {
+    if (!imageValue) {
+      return '';
+    }
+
+    if (imageValue.startsWith('data:') || imageValue.startsWith('/')) {
+      return imageValue;
+    }
+
+    return `data:image/png;base64,${imageValue}`;
+  }
+
   ngOnInit(): void {
     this.paramSubscription = this.activatedRoute.params.subscribe((params: Params) => {
       if (params.sequence_number) {
