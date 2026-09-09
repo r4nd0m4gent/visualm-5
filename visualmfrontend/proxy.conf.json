@@ -1,0 +1,42 @@
+{
+  "/auth": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/materials": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/ingredients": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/user": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/reports": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/config": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/org-admin": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/images": {
+    "target": "https://ecomaterialscollective.org",
+    "secure": true,
+    "changeOrigin": true
+  }
+}

@@ -130,12 +130,7 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.getMaterialsByOrganisationAndSaveStatus(
-                admin.getOrganisation(), SaveStatus.PENDING_APPROVAL);
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
-        }
+        List<Material> materials = materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
         return ResponseEntity.ok(materials);
     }
 
@@ -168,8 +163,6 @@ public class OrgAdminController {
         material.setSaveStatus(SaveStatus.PUBLISHED);
 
         Material savedMaterial = materialsRepository.save(material);
-        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
-        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
         return ResponseEntity.ok(savedMaterial);
     }
 
@@ -191,8 +184,6 @@ public class OrgAdminController {
 
         material.setSaveStatus(SaveStatus.DRAFT);
         Material savedMaterial = materialsRepository.save(material);
-        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
-        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
         return ResponseEntity.ok(savedMaterial);
     }
 
@@ -206,12 +197,24 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.getMaterialsByOrganisation(admin.getOrganisation());
-        for (Material material : materials) {
-            material.setOverviewURL(FileUploadHandler.getFileBase64(material.getOverviewURL()));
-            material.setCloseUpURL(FileUploadHandler.getFileBase64(material.getCloseUpURL()));
+        return ResponseEntity.ok(materialsRepository.findAll());
+    }
+
+    /**
+     * API: Delete a material via org-admin token.
+     */
+    @DeleteMapping("/api/{token}/materials/{sequenceNumber}")
+    public ResponseEntity<Void> deleteMaterial(@PathVariable String token,
+                                               @PathVariable Long sequenceNumber) {
+        OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
+        if (admin == null) {
+            return ResponseEntity.status(403).build();
         }
-        return ResponseEntity.ok(materials);
+        Long deleted = materialsRepository.deleteMaterialBySequenceNumber(sequenceNumber);
+        if (deleted == null || deleted == 0) {
+            throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
+        }
+        return ResponseEntity.ok().build();
     }
 
     /**

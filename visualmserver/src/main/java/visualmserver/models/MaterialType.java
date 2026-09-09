@@ -5,5 +5,7 @@ public enum MaterialType {
   ANIMAL_BASED,
   MICROBIAL,
   FUNGAL,
-  INORGANIC
+  INORGANIC,
+  RECYCLED,
+  NATURAL_DYES
 }

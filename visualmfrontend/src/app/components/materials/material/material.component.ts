@@ -79,7 +79,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
       if (params.sequence_number) {
         this.materialService.getBySequenceNumber(params.sequence_number).subscribe(material => {
           this.material = Material.trueCopy(material);
-          this.user = User.trueCopy(this.material.getUser());
+          this.user = this.material.getUser() ? User.trueCopy(this.material.getUser()) : null;
 
           if (material) {
             this.loadingDone = true;
@@ -91,7 +91,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
           }
 
           if (this.material.getSaveStatus() === SaveStatus.DRAFT
-            && this.authService.currentUser.getId() != this.user.getId()) {
+            && this.authService.currentUser.getId() != this.user?.getId()) {
             if (!this.authService.isAdmin()) {
               this.router.navigate(['/not-found']);
             }
@@ -102,8 +102,8 @@ export class MaterialComponent implements OnInit, OnDestroy {
           // Be sure to check this only when a user is logged in
           if (this.authService.isLoggedIn()) {
             this.canDuplicate = true;
-            this.canGeneratePDF = (this.user.getId() === this.authService.currentUser.getId()) || this.authService.currentUser.isAdmin();
-            this.canReport = (this.user.getId() !== this.authService.currentUser.getId());
+            this.canGeneratePDF = (this.user?.getId() === this.authService.currentUser.getId()) || this.authService.currentUser.isAdmin();
+            this.canReport = (this.user?.getId() !== this.authService.currentUser.getId());
           }
 
           if (this.material.getParentId()) {
@@ -265,6 +265,18 @@ export class MaterialComponent implements OnInit, OnDestroy {
     this.reportService.save(report).subscribe(data => {
     }, error => {
     });
+  }
+
+  get makerName(): string {
+    if (this.material?.referenceEmail) {
+      const ref = this.material?.getReference();
+      if (ref && ref.startsWith('By ')) {
+        const name = ref.substring(3).split(' - ')[0]?.trim();
+        if (name) { return name; }
+      }
+      return '';
+    }
+    return this.user ? `${this.user.getFirstname()} ${this.user.getLastname()}` : '';
   }
 
   ngOnDestroy(): void {

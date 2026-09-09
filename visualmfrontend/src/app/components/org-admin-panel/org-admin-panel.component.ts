@@ -26,10 +26,12 @@ export class OrgAdminPanelComponent implements OnInit {
   pendingDataSource: MatTableDataSource<Material>;
   pendingColumns: string[] = ['sequenceNumber', 'name', 'creationDate', 'user', 'referenceEmail', 'action'];
 
-  // Label
+  // Submissions
   materials: Material[] = [];
   materialDataSource: MatTableDataSource<Material>;
-  materialColumns: string[] = ['sequenceNumber', 'name', 'saveStatus', 'creationDate', 'user', 'action'];
+  materialColumns: string[] = ['sequenceNumberPublished', 'name', 'saveStatus', 'creationDate', 'user', 'action'];
+  deleteMaterialPopup = false;
+  deleteSelectedMaterial: Material = null;
 
   // User
   users: User[] = [];
@@ -215,6 +217,56 @@ export class OrgAdminPanelComponent implements OnInit {
   applyFilterMaterial(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     if (this.materialDataSource) { this.materialDataSource.filter = filterValue.trim().toLowerCase(); }
+  }
+
+  onDeleteMaterialPopup(element: Material): void {
+    this.deleteSelectedMaterial = element;
+    this.deleteMaterialPopup = true;
+  }
+
+  closeDeleteMaterialPopup(): void {
+    this.deleteMaterialPopup = false;
+    this.deleteSelectedMaterial = null;
+  }
+
+  onDeleteMaterial(): void {
+    if (!this.deleteSelectedMaterial) { return; }
+    const seqNum = this.deleteSelectedMaterial.getSequenceNumber();
+    this.http.delete(`${this.baseUrl}/${this.token}/materials/${seqNum}`).subscribe(
+      () => {
+        this.materials = this.materials.filter(m => m.getSequenceNumber() !== seqNum);
+        this.materialDataSource.data = this.materials;
+        this.deleteMaterialPopup = false;
+        this.deleteSelectedMaterial = null;
+        this.snackBar.open('Label deleted.', 'Close', {duration: 3000});
+      },
+      () => { this.snackBar.open('Failed to delete label.', 'Close', {duration: 3000}); }
+    );
+  }
+
+  exportLabels(): void {
+    if (!this.materials || this.materials.length === 0) { return; }
+    const date = new Date().toLocaleDateString('nl-NL');
+    const rows: string[] = [];
+    rows.push('sep=\t');
+    rows.push('\n');
+    Object.keys(this.materials[0]).forEach(k => {
+      if (!k.toLowerCase().includes('overviewurl') && !k.toLowerCase().includes('closeupurl')) {
+        rows.push(k + '\t ');
+      }
+    });
+    rows.push('\n');
+    this.materials.forEach(m => {
+      rows.push(m.getFormattedSequenceNumber() + '\t ' + m.getName() + '\t ' + m.getChanges() + '\t ' + m.getCreationDate() + '\t ');
+      rows.push('\n');
+    });
+    const blob = new Blob(rows, {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `labels_${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   applyFilterUser(event: Event): void {

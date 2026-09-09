@@ -1,3 +1,22 @@
+-- -----------------------------------------------------------------------
+-- Cleanup: remove all records whose name contains 'test' (case-insensitive).
+-- These DELETEs must be run before the INSERTs so FK constraints are
+-- satisfied. For an existing MySQL deployment, run these statements
+-- manually against the live database.
+-- -----------------------------------------------------------------------
+DELETE FROM `material_has_ingredient`
+    WHERE `sequence_number` IN (
+        SELECT `sequence_number` FROM `material` WHERE LOWER(`name`) LIKE '%test%');
+
+DELETE FROM `material_has_tag`
+    WHERE `sequence_number` IN (
+        SELECT `sequence_number` FROM `material` WHERE LOWER(`name`) LIKE '%test%');
+
+DELETE FROM `material` WHERE LOWER(`name`) LIKE '%test%';
+
+DELETE FROM `ingredient` WHERE LOWER(`name`) LIKE '%test%';
+
+-- -----------------------------------------------------------------------
 -- Insert Tags
 INSERT INTO `tag` (`id`,`name`) VALUES (1,'INDUSTRIALLY_COMPOSTABLE');
 INSERT INTO `tag` (`id`,`name`) VALUES (2,'RENEWABLE');
@@ -187,7 +206,7 @@ INSERT INTO `material_has_ingredient` (`sequence_number`,`id`,`amount`) VALUES (
 
 -- Default app config
 INSERT INTO `app_config` (`key_name`, `value`) VALUES ('email_suffix', 'hva.nl');
-INSERT INTO `app_config` (`key_name`, `value`) VALUES ('organisation', 'Github');
+INSERT INTO `app_config` (`key_name`, `value`) VALUES ('organisation', 'Hogeschool van Amsterdam');
 INSERT INTO `app_config` (`key_name`, `value`) VALUES ('logo_path', 'assets/images/HvAlogo.png');
 
 -- Organisation admins

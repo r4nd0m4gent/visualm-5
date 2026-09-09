@@ -344,8 +344,9 @@ color: red !important;
 }
 
 .tags-container2 {
-  width: 500px;
-  margin-left: -40%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .stepsIngredients {

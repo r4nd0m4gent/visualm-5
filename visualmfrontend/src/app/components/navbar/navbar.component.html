@@ -18,9 +18,7 @@
       <li *ngIf="isLoggedIn()">
         <a routerLink="my-profile" routerLinkActive="activated-link" [routerLinkActiveOptions]="{exact:true}">{{user?.getFirstname()}}</a>
       </li>
-      <li *ngIf="isLoggedIn() && user?.isAdmin()">
-        <a routerLink="admin" routerLinkActive="activated-link" [routerLinkActiveOptions]="{exact:true}">Admin Panel</a>
-      </li>
+
       <li>
         <img class="hvaLogo" src="assets/images/hva-logo-navbar.png" width="150">
 
@@ -53,10 +51,7 @@
           <a data-toggle="collapse" data-target="#navbarToggleExternalContent" routerLink="my-profile"
              routerLinkActive="activated-link" [routerLinkActiveOptions]="{exact:true}">{{user?.getFirstname()}}</a>
         </li>
-        <li *ngIf="isLoggedIn() && user?.isAdmin()">
-          <a data-toggle="collapse" data-target="#navbarToggleExternalContent" routerLink="admin"
-             routerLinkActive="activated-link" [routerLinkActiveOptions]="{exact:true}">Admin Panel</a>
-        </li>
+
         <li>
           <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="license">CC BY-NC-SA 4.0 </a>
         </li>

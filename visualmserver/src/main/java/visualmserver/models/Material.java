@@ -16,9 +16,8 @@ public class Material {
     public static final int MAXIMUM_STEPS = 10;
     public static final int MAXIMUM_INGREDIENTS = 6;
 
-    @NotNull
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sequence_number")
     private Long sequenceNumber;
 
@@ -83,7 +82,7 @@ public class Material {
     private MaterialType type;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @Column(name = "parent_sequence_number")
