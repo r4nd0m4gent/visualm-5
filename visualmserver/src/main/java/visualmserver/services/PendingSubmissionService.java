@@ -57,6 +57,10 @@ public class PendingSubmissionService {
         return material;
     }
 
+    public Material getMaterial(Long id) throws IOException {
+        return this.toMaterial(this.findById(id));
+    }
+
     public Material approve(Long id) throws IOException {
         PendingSubmission pending = this.findById(id);
         Material material = objectMapper.readValue(pending.getMaterialJson(), Material.class);

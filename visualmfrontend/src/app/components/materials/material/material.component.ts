@@ -38,6 +38,8 @@ export class MaterialComponent implements OnInit, OnDestroy {
   public canGeneratePDF = false;
   public canDuplicate = false;
   public canReport = false;
+  public isSubmissionPreview = false;
+  public adminPanelToken: string;
   loadingDone: boolean = false;
   public reportMessage: string;
   ingredientArray: MaterialIngredient[] = [];
@@ -76,6 +78,30 @@ export class MaterialComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.paramSubscription = this.activatedRoute.params.subscribe((params: Params) => {
+      // Org admin previewing a submission that is not a label yet: read-only, no actions
+      if (params.token && params.submission_id) {
+        this.isSubmissionPreview = true;
+        this.adminPanelToken = params.token;
+        this.materialService.getPendingSubmission(params.token, params.submission_id).subscribe(material => {
+          this.material = Material.trueCopy(material);
+          this.user = this.material.getUser() ? User.trueCopy(this.material.getUser()) : null;
+          this.steps = this.material.getSteps().split('|');
+          this.canEdit = false;
+          this.canDuplicate = false;
+          this.canReport = false;
+          this.canGeneratePDF = false;
+          this.loadingDone = true;
+          if (this.material.getParentId()) {
+            this.materialService.getBySequenceNumber(this.material.getParentId()).subscribe(parentMaterial => {
+              this.parentMaterial = Material.trueCopy(parentMaterial);
+              this.parentAuthor = User.trueCopy(this.parentMaterial.getUser());
+            });
+          }
+          this.getIngredients();
+        }, () => this.router.navigate(['/not-found']));
+        return;
+      }
+
       if (params.sequence_number) {
         this.materialService.getBySequenceNumber(params.sequence_number).subscribe(material => {
           this.material = Material.trueCopy(material);

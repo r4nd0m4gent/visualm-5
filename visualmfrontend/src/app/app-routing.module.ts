@@ -24,6 +24,7 @@ const routes: Routes = [
   {path: 'my-profile', component: ProfileComponent, canActivate: [AuthGuard]},
   {path: 'user/:id', component: ProfileComponent},
   {path: 'org-admin/access/:token', component: OrgAdminPanelComponent},
+  {path: 'org-admin/access/:token/submission/:submission_id', component: MaterialComponent},
   {path: 'reset-password', component: ResetPasswordComponent},
   {path: 'verify-email', component: MailVerificationComponent},
   {path: 'materials/edit/:sequence_number', component: EditMaterialFormComponent},

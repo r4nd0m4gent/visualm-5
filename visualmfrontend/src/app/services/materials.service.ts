@@ -24,6 +24,11 @@ export class MaterialsService {
     return this.http.get<Material>(`${MaterialsService.BASE_URL}/${sequenceNumber}`);
   }
 
+  // A submission waiting for approval; only readable with the org admin's private token
+  public getPendingSubmission(orgAdminToken: string, submissionId: number): Observable<Material> {
+    return this.http.get<Material>(`${environment.backend_url}/org-admin/api/${orgAdminToken}/submissions/${submissionId}`);
+  }
+
   public getBySequenceNumberPublished(sequenceNumberPublished: number): Observable<Material> {
     return this.http.get<Material>(`${MaterialsService.BASE_URL}/published/${sequenceNumberPublished}`);
   }

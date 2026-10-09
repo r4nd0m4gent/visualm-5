@@ -54,11 +54,13 @@
             <ng-container matColumnDef="action">
               <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
               <mat-cell *matCellDef="let element">
-                <ng-container *ngIf="!isSubmission(element)">
-                  <a mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
-                    <img src="assets/icons/eye.svg" height="24">
-                  </a> |
-                </ng-container>
+                <a *ngIf="!isSubmission(element)" mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
+                  <img src="assets/icons/eye.svg" height="24">
+                </a>
+                <a *ngIf="isSubmission(element)" mat-icon-button matTooltip="Preview submission"
+                   routerLink="/org-admin/access/{{ token }}/submission/{{ element.pendingSubmissionId }}">
+                  <img src="assets/icons/eye.svg" height="24">
+                </a> |
                 <a mat-icon-button matTooltip="Approve and publish" (click)="onApprove(element)" style="cursor: pointer;">
                   <img src="assets/icons/done.svg" height="24">
                 </a> |

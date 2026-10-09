@@ -161,6 +161,18 @@ public class OrgAdminController {
     }
 
     /**
+     * API: A single new submission, so the admin can preview it before approving.
+     */
+    @GetMapping("/api/{token}/submissions/{id}")
+    public ResponseEntity<Material> getSubmission(@PathVariable String token, @PathVariable Long id) throws IOException {
+        OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
+        if (admin == null) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(pendingSubmissionService.getMaterial(id));
+    }
+
+    /**
      * API: Approve a new submission (pending_submission table) and publish it as a label.
      */
     @PutMapping("/api/{token}/submissions/{id}/approve")

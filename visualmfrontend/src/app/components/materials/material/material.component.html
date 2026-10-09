@@ -1,6 +1,10 @@
 <div id="Material" class="container-fluid Material">
   <div class="pt-5">
     <div style="text-align: center;"><img *ngIf="!loadingDone" src="assets/icons/loadingIcon.svg" alt="Loading"></div>
+    <div *ngIf="loadingDone && isSubmissionPreview" class="alert alert-info d-flex justify-content-between align-items-center">
+      <span>Preview of a submission waiting for approval. It is not published yet.</span>
+      <a class="btn btn-primary btn-sm" routerLink="/org-admin/access/{{ adminPanelToken }}">Back to admin panel</a>
+    </div>
     <div *ngIf="loadingDone" class="shadow bg-light p-3 outerMaterial">
       <button type="button" class="btn is-primary form-control sizeBtnMat pdfButton" id="size-btn" (click)="generatePdf()"
               *ngIf="canGeneratePDF">Generate PDF Label
@@ -76,7 +80,7 @@
           <h3 id="materialType" class="type">{{ materialType[material?.getType()] }}</h3>
           <h3 id="materialNumber" class="Snumber">
 
-            #{{ material?.getFormattedSequenceNumber() }}
+            #{{ isSubmissionPreview ? 'PENDING' : material?.getFormattedSequenceNumber() }}
 
              </h3>
 
