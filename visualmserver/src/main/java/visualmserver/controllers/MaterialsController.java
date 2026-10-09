@@ -221,7 +221,7 @@ public class MaterialsController {
     }
 
     @GetMapping("/pending")
-    public List<Material> getPendingMaterials(@RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) {
+    public List<Material> getPendingMaterials(@RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
         if (!tokenInfo.isAdmin()) {
             throw new AuthorizationException("Only administrators can view pending materials.");
         }
