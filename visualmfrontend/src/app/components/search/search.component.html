@@ -38,8 +38,8 @@
             </div>
             <img class="card-img-top rounded" alt="" *ngIf="!material.overviewURL"
                  src="assets/images/missingImage.png" loading="lazy"/>
-            <img class="card-img-top rounded" alt="" *ngIf="material.overviewURL"
-                 [src]="material.overviewURL" loading="lazy"/>
+              <img class="card-img-top rounded" alt="" *ngIf="material.overviewURL"
+                [src]="getImageSource(material.overviewURL)" loading="lazy"/>
             <span class="badge is-primary badge-pill" *ngFor="let tag of material.getTags()">
 	            {{ materialTag[tag.name] }}
             </span>

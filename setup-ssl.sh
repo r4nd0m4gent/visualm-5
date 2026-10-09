@@ -30,21 +30,15 @@ docker compose run --rm certbot certonly \
     --agree-tos \
     --no-eff-email
 
-# Step 2: Enable HTTPS in nginx.conf
-# Uncomment the HTTPS redirect in the HTTP block
-sed -i 's|^    # return 301 https://\$host\$request_uri;|    return 301 https://\$host\$request_uri;|' nginx/nginx.conf
-
-# Comment out HTTP content blocks (everything between the redirect and closing brace)
-# — users should manually remove the HTTP-served content block and uncomment the SSL server block.
+# Step 2: Switch to the HTTPS configuration only after Certbot succeeds.
+cp nginx/nginx-https.conf nginx/nginx.conf
+docker compose exec frontend nginx -t
+docker compose exec frontend nginx -s reload
 
 echo ""
 echo "=== Certificate obtained! ==="
 echo ""
-echo "Now edit nginx/nginx.conf:"
-echo "  1. Uncomment the HTTPS server block at the bottom"
-echo "  2. In the HTTP server block, keep only the ACME challenge + redirect"
-echo "     (remove or comment out the root, proxy, and SPA locations)"
-echo "  3. Run: docker compose exec frontend nginx -s reload"
+echo "HTTPS is enabled and Nginx has been reloaded."
 echo ""
 echo "To auto-renew, add this cron job (sudo crontab -e):"
 echo "  0 3 * * * cd $(pwd) && docker compose run --rm certbot renew && docker compose exec frontend nginx -s reload"

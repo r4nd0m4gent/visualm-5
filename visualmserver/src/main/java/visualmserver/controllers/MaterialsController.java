@@ -11,13 +11,17 @@ import visualmserver.exceptions.AuthorizationException;
 import visualmserver.exceptions.InvalidDataException;
 import visualmserver.exceptions.PreConditionException;
 import visualmserver.exceptions.ResourceNotFoundException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import visualmserver.models.Ingredient;
 import visualmserver.models.Material;
 import visualmserver.models.MaterialIngredient;
+import visualmserver.models.PendingSubmission;
 import visualmserver.models.SaveStatus;
 import visualmserver.models.User;
 import visualmserver.repositories.IngredientRepository;
 import visualmserver.repositories.MaterialIngredientRepository;
 import visualmserver.repositories.MaterialsRepository;
+import visualmserver.repositories.PendingSubmissionRepository;
 import visualmserver.repositories.UserRepository;
 import visualmserver.services.EmailSenderService;
 import visualmserver.util.FileUploadHandler;
@@ -26,7 +30,12 @@ import visualmserver.util.JWTokenInfo;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/materials")
@@ -45,6 +54,12 @@ public class MaterialsController {
 
     @Autowired
     private EmailSenderService emailSenderService;
+
+    @Autowired
+    private PendingSubmissionRepository pendingSubmissionRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${frontend.url:}")
     private String frontendUrl;
@@ -103,17 +118,15 @@ public class MaterialsController {
     public ResponseEntity<Material> saveMaterial(@RequestBody @Valid Material material, Errors errors,
             @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
         if (errors.hasErrors()) {
-            //throw new InvalidDataException("Invalid Material object data.");
             throw new InvalidDataException(errors.toString());
         }
 
         this.validateSize(material);
 
-        // Force INSERT: frontend sends sequenceNumber=0; setting it to null lets JPA auto-generate the ID.
+        // Force INSERT: set sequenceNumber to null so JPA auto-generates.
         material.setSequenceNumber(null);
 
-        // Resolve submitter — required since login is not enforced on the frontend.
-        // Use the user id sent by the client if valid, else fall back to the first user in the DB.
+        // Resolve submitter.
         User submitter = null;
         if (material.getUser() != null && material.getUser().getId() > 0) {
             submitter = userRepository.getUserById(material.getUser().getId());
@@ -129,10 +142,6 @@ public class MaterialsController {
             material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
         }
 
-        if (material.getSaveStatus() == SaveStatus.PENDING_APPROVAL) {
-            notifyAdminsOnSubmission(material);
-        }
-
         String imageFolder = submitter != null
                 ? String.format("/images/material/%s/", submitter.getId())
                 : "/images/material/anonymous/";
@@ -141,10 +150,24 @@ public class MaterialsController {
         material.setOverviewURL(this.resolveImage(material.getOverviewURL(), imageFolder));
         material.setCloseUpURL(this.resolveImage(material.getCloseUpURL(), imageFolder));
 
-        Material savedMaterial = this.insertMaterial(material, null);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{sequenceNumber}").buildAndExpand(savedMaterial.getSequenceNumber()).toUri();
+        // Admin direct publish — insert immediately.
+        if (material.getSaveStatus() == SaveStatus.PUBLISHED && tokenInfo.isAdmin()) {
+            Material savedMaterial = this.insertMaterial(material, null);
+            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{sequenceNumber}").buildAndExpand(savedMaterial.getSequenceNumber()).toUri();
+            return ResponseEntity.created(uri).body(savedMaterial);
+        }
 
-        return ResponseEntity.created(uri).body(savedMaterial);
+        // Non-admin (or admin saving as draft/pending): store as pending submission.
+        material.setSaveStatus(SaveStatus.PENDING_APPROVAL);
+
+        PendingSubmission pending = new PendingSubmission();
+        pending.setMaterialJson(objectMapper.writeValueAsString(material));
+        pending.setSubmittedAt(LocalDateTime.now());
+        pendingSubmissionRepository.save(pending);
+
+        notifyAdminsOnSubmission(material);
+
+        return ResponseEntity.accepted().build();
     }
 
     @PutMapping("/{sequenceNumber}")
@@ -202,7 +225,16 @@ public class MaterialsController {
         if (!tokenInfo.isAdmin()) {
             throw new AuthorizationException("Only administrators can view pending materials.");
         }
-        return this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
+        List<PendingSubmission> submissions = pendingSubmissionRepository.findAll();
+        List<Material> materials = new ArrayList<>();
+        for (PendingSubmission sub : submissions) {
+            Material m = objectMapper.readValue(sub.getMaterialJson(), Material.class);
+            m.setSequenceNumber(sub.getId());
+            m.setOverviewURL(FileUploadHandler.getFileBase64(m.getOverviewURL()));
+            m.setCloseUpURL(FileUploadHandler.getFileBase64(m.getCloseUpURL()));
+            materials.add(m);
+        }
+        return materials;
     }
 
     @PutMapping("/approve/{sequenceNumber}")
@@ -212,17 +244,19 @@ public class MaterialsController {
             throw new AuthorizationException("Only administrators can approve materials.");
         }
 
-        Material material = this.materialsRepository.getMaterialBySequenceNumber(sequenceNumber);
+        PendingSubmission pending = pendingSubmissionRepository.findById(sequenceNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Pending submission not found with id=%d", sequenceNumber)));
 
-        if (material == null) {
-            throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
+        Material material = objectMapper.readValue(pending.getMaterialJson(), Material.class);
+
+        // Re-fetch managed User entity to avoid detached entity errors.
+        if (material.getUser() != null && material.getUser().getId() > 0) {
+            material.setUser(userRepository.getUserById(material.getUser().getId()));
         }
 
-        if (material.getSaveStatus() != SaveStatus.PENDING_APPROVAL) {
-            throw new PreConditionException("Material is not pending approval.");
-        }
+        material.setSequenceNumber(null);
 
-        // Assign a published sequence number
+        // Assign a published sequence number.
         List<Material> publishedMaterials = this.materialsRepository.getMaterialsBySaveStatus(SaveStatus.PUBLISHED);
         long maxPublished = publishedMaterials.stream()
                 .filter(m -> m.getSequenceNumberPublished() != null)
@@ -232,29 +266,28 @@ public class MaterialsController {
         material.setSequenceNumberPublished(maxPublished + 1);
         material.setSaveStatus(SaveStatus.PUBLISHED);
 
-        Material savedMaterial = this.materialsRepository.save(material);
+        Material savedMaterial = this.insertMaterial(material, null);
+        pendingSubmissionRepository.deleteById(sequenceNumber);
+
+        savedMaterial.setOverviewURL(FileUploadHandler.getFileBase64(savedMaterial.getOverviewURL()));
+        savedMaterial.setCloseUpURL(FileUploadHandler.getFileBase64(savedMaterial.getCloseUpURL()));
 
         return ResponseEntity.ok().body(savedMaterial);
     }
 
     @PutMapping("/reject/{sequenceNumber}")
-    public ResponseEntity<Material> rejectMaterial(@PathVariable Long sequenceNumber,
-            @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) throws IOException {
+    public ResponseEntity<Void> rejectMaterial(@PathVariable Long sequenceNumber,
+            @RequestAttribute(value = JWTokenInfo.ATTRIBUTE_KEY) JWTokenInfo tokenInfo) {
         if (!tokenInfo.isAdmin()) {
             throw new AuthorizationException("Only administrators can reject materials.");
         }
 
-        Material material = this.materialsRepository.getMaterialBySequenceNumber(sequenceNumber);
+        pendingSubmissionRepository.findById(sequenceNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Pending submission not found with id=%d", sequenceNumber)));
 
-        if (material == null) {
-            throw new ResourceNotFoundException(String.format("Material not found with sequenceNumber=%d", sequenceNumber));
-        }
+        pendingSubmissionRepository.deleteById(sequenceNumber);
 
-        material.setSaveStatus(SaveStatus.DRAFT);
-
-        Material savedMaterial = this.materialsRepository.save(material);
-
-        return ResponseEntity.ok().body(savedMaterial);
+        return ResponseEntity.noContent().build();
     }
 
     private void notifyAdminsOnSubmission(Material material) {
@@ -275,21 +308,34 @@ public class MaterialsController {
     }
 
     private Material insertMaterial(Material material, Material existingMaterial) {
+        // Temporarily clear materialIngredients before saving Material to avoid
+        // Hibernate attempting to persist stale composite-key join rows.
+        Set<MaterialIngredient> ingredients = material.getMaterialIngredients() != null
+                ? new HashSet<>(material.getMaterialIngredients()) : new HashSet<>();
+        material.setMaterialIngredients(new HashSet<>());
+
         Material savedMaterial = this.materialsRepository.save(material);
 
         if (existingMaterial != null) {
             this.materialIngredientRepository.deleteMaterialIngredientBySequenceNumber(existingMaterial.getSequenceNumber());
         }
 
-        for (MaterialIngredient materialIngredient : material.getMaterialIngredients()) {
-            // Add ingredient if not added yet
-            if (materialIngredient.getIngredient().getId() == 0)
-                this.ingredientRepository.save(materialIngredient.getIngredient());
-
+        for (MaterialIngredient materialIngredient : ingredients) {
+            Ingredient ingredient = materialIngredient.getIngredient();
+            if (ingredient.getId() == 0) {
+                Optional<Ingredient> existing = ingredientRepository.findByNameAndType(ingredient.getName(), ingredient.getType());
+                if (existing.isPresent()) {
+                    ingredient.setId(existing.get().getId());
+                } else {
+                    int newId = ingredientRepository.findMaxId() + 1;
+                    ingredientRepository.insertIngredientWithId(newId, ingredient.getName(), ingredient.getType());
+                    ingredient.setId(newId);
+                }
+            }
             this.materialIngredientRepository.insertMaterialIngredient(savedMaterial.getSequenceNumber(),
-                    materialIngredient.getIngredient().getId(), materialIngredient.getAmount());
+                    ingredient.getId(), materialIngredient.getAmount());
         }
-        savedMaterial.setMaterialIngredients(material.getMaterialIngredients());
+        savedMaterial.setMaterialIngredients(ingredients);
 
         return savedMaterial;
     }
