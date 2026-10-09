@@ -60,12 +60,9 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
 
           this.user = User.trueCopy(this.material.getUser());
 
+          // A duplicate belongs to whoever makes it (or nobody when anonymous), never to the original author
           if (this.isDuplicateAction) {
-            this.userService.getAll().subscribe(users => {
-              if (users && users.length > 0) {
-                this.user = Object.assign(new User(), users[0]);
-              }
-            });
+            this.user = this.authService.isLoggedIn() ? this.authService.currentUser : null;
           }
 
           // Convert json response to correct typescript model
@@ -86,11 +83,13 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
           if (this.material.getParentId()) {
             this.materialService.getBySequenceNumber(this.material.getParentId()).subscribe(parentMaterial => {
               const foundMaterial = Material.trueCopy(parentMaterial);
-              const author = User.trueCopy(foundMaterial.getUser());
 
               this.parentId = foundMaterial.getSequenceNumber();
               this.recipeTitle = foundMaterial.getName();
-              this.recipeAuthor = `By ${author.getFirstname()} ${author.getLastname()}`;
+              this.recipeAuthor = foundMaterial.getUser()
+                ? `By ${User.trueCopy(foundMaterial.getUser()).getFirstname()} ${User.trueCopy(foundMaterial.getUser()).getLastname()}`
+                : 'By Anonymous';
+              this.recipeYear = new Date(foundMaterial.getCreationDate()).getFullYear().toString();
 
               this.materialForm.get('variationOn').setValue(true);
             });
@@ -213,7 +212,8 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     const author = this.materialForm.get('referenceAuthor').value?.trim();
     const refTitle = this.materialForm.get('referenceTitle').value?.trim();
     const year = this.materialForm.get('referenceYear').value;
-    let reference = `By ${this.recipeAuthor} - ${this.recipeTitle} - ${this.recipeYear}`;
+    // recipeAuthor already starts with "By "
+    let reference = `${this.recipeAuthor} - ${this.recipeTitle} - ${this.recipeYear}`;
 
     if (!this.materialForm.get('variationOn').value) {
       reference = (author || refTitle || year)
@@ -248,8 +248,9 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
       changes, this.steps.join('|'), this.bitlyURL || 'No link added', tags, this.materialIngredients, this.materialForm.get('status').value,
       this.materialForm.get('type').value, this.user, this.parentId, reference);
 
-    material.setOverviewURL(this.overviewFileUpload.mediaDataURL ? this.overviewFileUpload.mediaDataURL : null);
-    material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL ? this.closeUpFileUpload.mediaDataURL : null);
+    // New upload -> data URL, unchanged -> existing path, deleted -> null (the backend clears it)
+    material.setOverviewURL(this.overviewFileUpload.mediaDataURL || this.material.getOverviewURL() || null);
+    material.setCloseUpURL(this.closeUpFileUpload.mediaDataURL || this.material.getCloseUpURL() || null);
     material.organisation = this.organisationName;
     material.postProcessingTags = this.selectedPostProcessingTags.join('|');
     material.referenceEmail = this.materialForm.get('referenceEmail').value?.trim() || null;
@@ -277,28 +278,34 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     });
   }
 
-  updateImagePreview(isOverview: boolean): void {
-    // Give some time to handle the conversion
-    setTimeout(() => {
-      if (isOverview) {
-        this.overviewImagePreview = this.overviewFileUpload.mediaDataURL;
-        this.material.setOverviewURL(null);
-      } else {
-        this.closeUpImagePreview = this.closeUpFileUpload.mediaDataURL;
-        this.material.setCloseUpURL(null);
-      }
-    }, 200);
+  protected onSubmitFailed(): void {
+    // Without this the duplicate flow stays stuck on the loading spinner with Submit disabled
+    this.popupPublish = false;
+    this.onSubmitEdit = false;
+    this.loadingEditDone = true;
   }
 
+  // Called once the upload component has finished compressing the newly selected image
+  updateImagePreview(isOverview: boolean, mediaDataURL: string): void {
+    if (isOverview) {
+      this.overviewImagePreview = mediaDataURL;
+      this.material.setOverviewURL(null);
+    } else {
+      this.closeUpImagePreview = mediaDataURL;
+      this.material.setCloseUpURL(null);
+    }
+  }
+
+  // Removes both the stored image (inherited from the original on a duplicate) and any newly uploaded one
   deleteOverviewImage(): void {
     this.material.setOverviewURL(null);
     this.overviewImagePreview = null;
-    this.overviewFileUpload.mediaDataURL = null;
+    this.overviewFileUpload.clear();
   }
 
   deleteCloseUpImage(): void {
     this.material.setCloseUpURL(null);
     this.closeUpImagePreview = null;
-    this.closeUpFileUpload.mediaDataURL = null;
+    this.closeUpFileUpload.clear();
   }
 }

@@ -137,15 +137,9 @@ public class MaterialsController {
                 ? String.format("/images/material/%s/", submitter.getId())
                 : "/images/material/anonymous/";
 
-        if (material.getOverviewURL() != null) {
-            String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), imageFolder);
-            material.setOverviewURL(savedImgPath);
-        }
-
-        if (material.getCloseUpURL() != null) {
-            String savedImgPath = FileUploadHandler.upload(material.getCloseUpURL(), imageFolder);
-            material.setCloseUpURL(savedImgPath);
-        }
+        // Duplicated labels send the parent's stored image path instead of base64 data; reuse that file as-is
+        material.setOverviewURL(this.resolveImage(material.getOverviewURL(), imageFolder));
+        material.setCloseUpURL(this.resolveImage(material.getCloseUpURL(), imageFolder));
 
         Material savedMaterial = this.insertMaterial(material, null);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{sequenceNumber}").buildAndExpand(savedMaterial.getSequenceNumber()).toUri();
@@ -186,19 +180,13 @@ public class MaterialsController {
             notifyAdminsOnSubmission(material);
         }
 
-        if (material.getOverviewURL() != null && material.getOverviewURL().startsWith("data:")) {
-            String savedImgPath = FileUploadHandler.upload(material.getOverviewURL(), String.format("/images/material/%s/", material.getUser().getId()));
-            material.setOverviewURL(savedImgPath);
-        } else {
-            material.setOverviewURL(foundMaterial.getOverviewURL());
-        }
+        String imageFolder = material.getUser() != null
+                ? String.format("/images/material/%s/", material.getUser().getId())
+                : "/images/material/anonymous/";
 
-        if (material.getCloseUpURL() != null && material.getCloseUpURL().startsWith("data:")) {
-            String savedImgPath = FileUploadHandler.upload(material.getCloseUpURL(), String.format("/images/material/%s/", material.getUser().getId()));
-            material.setCloseUpURL(savedImgPath);
-        } else {
-            material.setCloseUpURL(foundMaterial.getCloseUpURL());
-        }
+        // data: -> new upload, null/blank -> image deleted, anything else -> keep the stored image
+        material.setOverviewURL(this.resolveUpdatedImage(material.getOverviewURL(), foundMaterial.getOverviewURL(), imageFolder));
+        material.setCloseUpURL(this.resolveUpdatedImage(material.getCloseUpURL(), foundMaterial.getCloseUpURL(), imageFolder));
 
         Material savedMaterial = this.insertMaterial(material, foundMaterial);
         return ResponseEntity.ok(savedMaterial);
@@ -304,6 +292,36 @@ public class MaterialsController {
         savedMaterial.setMaterialIngredients(material.getMaterialIngredients());
 
         return savedMaterial;
+    }
+
+    private String resolveImage(String image, String imageFolder) throws IOException {
+        if (image == null || image.isBlank()) {
+            return null;
+        }
+
+        if (image.startsWith("data:")) {
+            return FileUploadHandler.upload(image, imageFolder);
+        }
+
+        // Only accept paths that point to images previously stored by this server
+        if (image.startsWith("/images/material/") && !image.contains("..")) {
+            return image;
+        }
+
+        return null;
+    }
+
+    private String resolveUpdatedImage(String image, String storedImage, String imageFolder) throws IOException {
+        if (image == null || image.isBlank()) {
+            return null;
+        }
+
+        if (image.startsWith("data:")) {
+            return FileUploadHandler.upload(image, imageFolder);
+        }
+
+        // Never trust a client-supplied path on update; keep what is already stored
+        return storedImage;
     }
 
     private void validateSize(Material material) {

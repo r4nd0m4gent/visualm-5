@@ -87,10 +87,12 @@ export class MaterialComponent implements OnInit, OnDestroy {
 
           this.steps = this.material.getSteps().split('|');
 
+          // Anyone viewing a label may print it
+          this.canGeneratePDF = true;
+
           // Be sure to check this only when a user is logged in
           if (this.authService.isLoggedIn()) {
             this.canDuplicate = true;
-            this.canGeneratePDF = (this.user?.getId() === this.authService.currentUser.getId()) || this.authService.currentUser.isAdmin();
             this.canReport = (this.user?.getId() !== this.authService.currentUser.getId());
           }
 
@@ -239,9 +241,9 @@ export class MaterialComponent implements OnInit, OnDestroy {
       }
 
       if (this.selectedFormat == null) {
-        pdf.save(title + '_' + sequenceNr + '_a4');
+        pdf.save(title + '_' + sequenceNr + '_a4.pdf');
       } else {
-        pdf.save(title + '_' + sequenceNr + '_' + this.selectedFormat);
+        pdf.save(title + '_' + sequenceNr + '_' + this.selectedFormat + '.pdf');
       }
 
     });

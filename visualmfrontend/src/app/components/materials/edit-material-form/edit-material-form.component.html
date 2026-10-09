@@ -379,27 +379,27 @@
         <div class="row">
           <div class="col-md-12">
             <h4>Overview image:</h4>
-            <div *ngIf="material?.getOverviewURL()" class="mb-2">
+            <div *ngIf="material?.getOverviewURL() || overviewImagePreview" class="mb-2">
               <p class="mb-1 text-muted small">Current image:</p>
               <div class="d-flex align-items-center">
-                <img [src]="material?.getOverviewURL()" style="max-height: 120px; border: 1px solid #ccc; border-radius: 4px;" alt="Current overview image"/>
+                <img [src]="overviewImagePreview || material?.getOverviewURL()" style="max-height: 120px; border: 1px solid #ccc; border-radius: 4px;" alt="Current overview image"/>
                 <button type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteOverviewImage()">
                   <img src="assets/icons/close.svg" height="14"/> Delete image
                 </button>
               </div>
             </div>
-            <app-file-upload #overviewImg (change)="updateImagePreview(true)"></app-file-upload>
+            <app-file-upload #overviewImg (mediaLoaded)="updateImagePreview(true, $event)"></app-file-upload>
             <h4>Close up image:</h4>
-            <div *ngIf="material?.getCloseUpURL()" class="mb-2">
+            <div *ngIf="material?.getCloseUpURL() || closeUpImagePreview" class="mb-2">
               <p class="mb-1 text-muted small">Current image:</p>
               <div class="d-flex align-items-center">
-                <img [src]="material?.getCloseUpURL()" style="max-height: 120px; border: 1px solid #ccc; border-radius: 4px;" alt="Current close-up image"/>
+                <img [src]="closeUpImagePreview || material?.getCloseUpURL()" style="max-height: 120px; border: 1px solid #ccc; border-radius: 4px;" alt="Current close-up image"/>
                 <button type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteCloseUpImage()">
                   <img src="assets/icons/close.svg" height="14"/> Delete image
                 </button>
               </div>
             </div>
-            <app-file-upload #closeUpImg (change)="updateImagePreview(false)"></app-file-upload>
+            <app-file-upload #closeUpImg (mediaLoaded)="updateImagePreview(false, $event)"></app-file-upload>
           </div>
         </div>
 

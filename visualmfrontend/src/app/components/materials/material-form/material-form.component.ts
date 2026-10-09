@@ -188,7 +188,8 @@ export class MaterialFormComponent implements OnInit {
     const author = this.materialForm.get('referenceAuthor').value?.trim();
     const refTitle = this.materialForm.get('referenceTitle').value?.trim();
     const year = this.materialForm.get('referenceYear').value;
-    let reference = `By ${this.recipeAuthor} - ${this.recipeTitle} - ${this.recipeYear}`;
+    // recipeAuthor already starts with "By "
+    let reference = `${this.recipeAuthor} - ${this.recipeTitle} - ${this.recipeYear}`;
 
     if (!this.materialForm.get('variationOn').value) {
       reference = (author || refTitle || year)
@@ -221,6 +222,7 @@ export class MaterialFormComponent implements OnInit {
 
     if (!this.overviewFileUpload.isValid() || !this.closeUpFileUpload.isValid()) {
       this.onSubmitDisable = false;
+      this.onSubmitFailed();
       return;
     }
 
@@ -245,7 +247,12 @@ export class MaterialFormComponent implements OnInit {
       this.popupPublish = false;
       this.onSubmitDisable = false;
       this.loadingDone = true;
+      this.onSubmitFailed();
     });
+  }
+
+  // Hook for subclasses that keep their own loading/disabled state around onSubmit()
+  protected onSubmitFailed(): void {
   }
 
 

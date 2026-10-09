@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, ElementRef, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
 
 @Component({
   selector: 'app-file-upload',
@@ -16,6 +16,10 @@ export class FileUploadComponent implements OnInit {
   private errorMessage: string;
   private fileName: string;
   public componentId;
+
+  // Emits once the selected image has been read and compressed into mediaDataURL
+  @Output() mediaLoaded = new EventEmitter<string>();
+  @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement>;
 
   constructor() {
     this.valid = true;
@@ -39,6 +43,7 @@ export class FileUploadComponent implements OnInit {
         const dataURL = reader.result.toString();
         this.compressImage(dataURL, file.type).then(compressed => {
           this.mediaDataURL = compressed;
+          this.mediaLoaded.emit(compressed);
         });
       };
     }
@@ -89,6 +94,18 @@ export class FileUploadComponent implements OnInit {
     }
 
     return this.valid;
+  }
+
+  public clear(): void {
+    this.mediaDataURL = null;
+    this.fileName = '';
+    this.valid = true;
+    this.errorMessage = '';
+
+    // Reset the native input so selecting the same file again still triggers a change
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 
   public isValid(): boolean {
