@@ -270,13 +270,6 @@ public class MaterialsController {
     }
 
     private void validateSize(Material material) {
-        System.out.println(material.getSteps().split("\\|").length);
-        if (material.getSteps().split("\\|").length > Material.MAXIMUM_STEPS) {
-            throw new InvalidDataException("Material can only contain a maximum of 8 steps.");
-        }
-
-        if (material.getMaterialIngredients().size() > Material.MAXIMUM_INGREDIENTS ) {
-            throw new InvalidDataException("Material can only contain a maximum of 6 ingredients.");
-        }
+        materialService.validateSize(material);
     }
 }

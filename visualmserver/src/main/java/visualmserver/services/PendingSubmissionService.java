@@ -9,6 +9,7 @@ import visualmserver.models.PendingSubmission;
 import visualmserver.models.SaveStatus;
 import visualmserver.repositories.PendingSubmissionRepository;
 import visualmserver.repositories.UserRepository;
+import visualmserver.util.FileUploadHandler;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -59,6 +60,45 @@ public class PendingSubmissionService {
 
     public Material getMaterial(Long id) throws IOException {
         return this.toMaterial(this.findById(id));
+    }
+
+    /**
+     * Saves an admin's edits to a submission. It stays pending; submitter and submission date are kept.
+     * Images: data: -> new upload, null/blank -> removed, anything else -> keep the stored image.
+     */
+    public Material update(Long id, Material edited) throws IOException {
+        PendingSubmission pending = this.findById(id);
+        Material stored = this.toMaterial(pending);
+
+        materialService.validateSize(edited);
+
+        edited.setSequenceNumber(null);
+        edited.setSequenceNumberPublished(null);
+        edited.setCreationDate(null);
+        edited.setUser(stored.getUser());
+        edited.setSaveStatus(SaveStatus.PENDING_APPROVAL);
+
+        String imageFolder = stored.getUser() != null
+                ? String.format("/images/material/%s/", stored.getUser().getId())
+                : "/images/material/anonymous/";
+        edited.setOverviewURL(this.resolveImage(edited.getOverviewURL(), stored.getOverviewURL(), imageFolder));
+        edited.setCloseUpURL(this.resolveImage(edited.getCloseUpURL(), stored.getCloseUpURL(), imageFolder));
+
+        pending.setMaterialJson(objectMapper.writeValueAsString(edited));
+        pendingSubmissionRepository.save(pending);
+
+        return this.toMaterial(pending);
+    }
+
+    private String resolveImage(String image, String storedImage, String imageFolder) throws IOException {
+        if (image == null || image.isBlank()) {
+            return null;
+        }
+        if (image.startsWith("data:")) {
+            return FileUploadHandler.upload(image, imageFolder);
+        }
+        // Never trust a client-supplied path; keep what is already stored
+        return storedImage;
     }
 
     public Material approve(Long id) throws IOException {

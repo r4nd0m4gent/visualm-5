@@ -28,6 +28,8 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
   private routeSubscription: Subscription;
   private queryParamsSubscription: Subscription;
   private isDuplicateAction = false;
+  private submissionToken: string = null;
+  private submissionId: number = null;
   public material: Material;
   public overviewImagePreview: string;
   public closeUpImagePreview: string;
@@ -51,9 +53,20 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     });
 
     this.routeSubscription = this.activatedRoute.params.subscribe((params: Params) => {
-      if (params.sequence_number) {
-        this.materialService.getBySequenceNumber(params.sequence_number).pipe(share()).subscribe(material => {
+      // Org admin editing a submission that is still waiting for approval
+      if (params.token && params.submission_id) {
+        this.submissionToken = params.token;
+        this.submissionId = Number(params.submission_id);
+      }
+
+      const material$ = this.isSubmissionEdit
+        ? this.materialService.getPendingSubmission(this.submissionToken, this.submissionId)
+        : params.sequence_number ? this.materialService.getBySequenceNumber(params.sequence_number) : null;
+
+      if (material$) {
+        material$.pipe(share()).subscribe(material => {
           this.material = Material.trueCopy(material);
+          this.restoreOrganisation(this.material.getOrganisation());
 
           // Not allowed to edit published labels. Duplicate published/draft labels are allowed
           // Admin check removed — edit is accessible without login
@@ -101,6 +114,32 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
             this.router.navigate(['/not-found']);
           }
         });
+      }
+    });
+  }
+
+  get isSubmissionEdit(): boolean {
+    return this.submissionToken != null && this.submissionId != null;
+  }
+
+  // Where Cancel and a successful save go back to
+  get returnLink(): string {
+    if (this.isSubmissionEdit) {
+      return `/org-admin/access/${this.submissionToken}/submission/${this.submissionId}`;
+    }
+    return '/archive';
+  }
+
+  // Keep the label's own organisation (name, logo, template) instead of the site default
+  private restoreOrganisation(organisation: string): void {
+    if (!organisation) {
+      return;
+    }
+    this.organisationName = organisation;
+    this.configService.getOrganisations().subscribe(orgs => {
+      const match = (orgs || []).find(org => org.organisation === organisation);
+      if (match) {
+        this.onOrgSelected(match);
       }
     });
   }
@@ -179,6 +218,20 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
   }
 
   public onCreateLabelPublishedEdit() {
+    // An admin editing a submission only saves changes; approving happens in the admin panel
+    if (this.isSubmissionEdit) {
+      if (!this.materialForm.valid) {
+        this.materialForm.markAllAsTouched();
+        this.snackBar.open('Oops something went wrong :( Check all the fields for errors ', 'Close', {
+          duration: 20000,
+          horizontalPosition: 'center', verticalPosition: 'bottom',
+        });
+        return;
+      }
+      this.onSubmit();
+      return;
+    }
+
     super.onCreateLabelPublished();
   }
 
@@ -255,6 +308,18 @@ export class EditMaterialFormComponent extends MaterialFormComponent implements 
     material.postProcessingTags = this.selectedPostProcessingTags.join('|');
     material.referenceEmail = this.materialForm.get('referenceEmail').value?.trim() || null;
     material.setSequenceNumberPublished(this.material.getSequenceNumberPublished());
+
+    if (this.isSubmissionEdit) {
+      this.materialService.updatePendingSubmission(this.submissionToken, this.submissionId, material).subscribe(() => {
+        this.snackBar.open('Changes saved', 'Close', {duration: 3000});
+        this.router.navigateByUrl(this.returnLink);
+      }, error => {
+        console.log(error);
+        this.snackBar.open('Something went wrong. Please try again.', 'Close', {duration: 7000});
+        this.onSubmitFailed();
+      });
+      return;
+    }
 
     this.materialService.update(material.getSequenceNumber(), material).subscribe(data => {
       if (this.materialForm.get('status').value === SaveStatus.PUBLISHED) {

@@ -3,7 +3,12 @@
     <div style="text-align: center;"><img *ngIf="!loadingDone" src="assets/icons/loadingIcon.svg" alt="Loading"></div>
     <div *ngIf="loadingDone && isSubmissionPreview" class="alert alert-info d-flex justify-content-between align-items-center">
       <span>Preview of a submission waiting for approval. It is not published yet.</span>
-      <a class="btn btn-primary btn-sm" routerLink="/org-admin/access/{{ adminPanelToken }}">Back to admin panel</a>
+      <span>
+        <a class="btn btn-primary btn-sm mr-2" routerLink="/org-admin/access/{{ adminPanelToken }}/submission/{{ submissionId }}/edit">
+          <img height="16" src="assets/icons/pencil.svg"> Edit
+        </a>
+        <a class="btn btn-primary btn-sm" routerLink="/org-admin/access/{{ adminPanelToken }}">Back to admin panel</a>
+      </span>
     </div>
     <div *ngIf="loadingDone" class="shadow bg-light p-3 outerMaterial">
       <button type="button" class="btn is-primary form-control sizeBtnMat pdfButton" id="size-btn" (click)="generatePdf()"

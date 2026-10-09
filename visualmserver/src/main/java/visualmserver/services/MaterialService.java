@@ -2,6 +2,7 @@ package visualmserver.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import visualmserver.exceptions.InvalidDataException;
 import visualmserver.models.Ingredient;
 import visualmserver.models.Material;
 import visualmserver.models.MaterialIngredient;
@@ -62,6 +63,16 @@ public class MaterialService {
         savedMaterial.setMaterialIngredients(ingredients);
 
         return savedMaterial;
+    }
+
+    public void validateSize(Material material) {
+        if (material.getSteps().split("\\|").length > Material.MAXIMUM_STEPS) {
+            throw new InvalidDataException("Material can only contain a maximum of 8 steps.");
+        }
+
+        if (material.getMaterialIngredients().size() > Material.MAXIMUM_INGREDIENTS ) {
+            throw new InvalidDataException("Material can only contain a maximum of 6 ingredients.");
+        }
     }
 
     /**

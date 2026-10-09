@@ -29,6 +29,10 @@ export class MaterialsService {
     return this.http.get<Material>(`${environment.backend_url}/org-admin/api/${orgAdminToken}/submissions/${submissionId}`);
   }
 
+  public updatePendingSubmission(orgAdminToken: string, submissionId: number, material: Material): Observable<Material> {
+    return this.http.put<Material>(`${environment.backend_url}/org-admin/api/${orgAdminToken}/submissions/${submissionId}`, material);
+  }
+
   public getBySequenceNumberPublished(sequenceNumberPublished: number): Observable<Material> {
     return this.http.get<Material>(`${MaterialsService.BASE_URL}/published/${sequenceNumberPublished}`);
   }

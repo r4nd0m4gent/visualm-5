@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import visualmserver.exceptions.InvalidDataException;
 import visualmserver.exceptions.PreConditionException;
 import visualmserver.exceptions.ResourceNotFoundException;
 import visualmserver.models.LabelTemplate;
@@ -170,6 +173,22 @@ public class OrgAdminController {
             return ResponseEntity.status(403).build();
         }
         return ResponseEntity.ok(pendingSubmissionService.getMaterial(id));
+    }
+
+    /**
+     * API: Save an admin's edits to a new submission; it stays pending approval.
+     */
+    @PutMapping("/api/{token}/submissions/{id}")
+    public ResponseEntity<Material> updateSubmission(@PathVariable String token, @PathVariable Long id,
+                                                     @RequestBody @Valid Material material, Errors errors) throws IOException {
+        OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
+        if (admin == null) {
+            return ResponseEntity.status(403).build();
+        }
+        if (errors.hasErrors()) {
+            throw new InvalidDataException(errors.toString());
+        }
+        return ResponseEntity.ok(pendingSubmissionService.update(id, material));
     }
 
     /**

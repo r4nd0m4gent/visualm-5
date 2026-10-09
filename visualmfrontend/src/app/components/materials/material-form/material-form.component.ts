@@ -82,6 +82,10 @@ export class MaterialFormComponent implements OnInit {
     this.creationDate = new Date();
 
     this.configService.getAll().subscribe(config => {
+      // An edited label may already have restored its own organisation; don't replace it with the default
+      if (this.organisationName) {
+        return;
+      }
       this.logoPath = config.logo_path;
       this.organisationName = config.organisation;
       // Load template for the default organisation

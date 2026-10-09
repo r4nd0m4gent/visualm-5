@@ -448,7 +448,7 @@
         <div class="col-md-12 text-center mt-4 mb-4">
 
           <div class="buttonsCreateLabel">
-            <button routerLink="/archive" class="btn is-primary form-control cancelButton">
+            <button type="button" [routerLink]="returnLink" class="btn is-primary form-control cancelButton">
               <img height="18" src="assets/icons/close.svg">
               Cancel
             </button>
@@ -465,7 +465,7 @@
             </div>
             <button [disabled]="onSubmitEdit" class="btn is-primary form-control submitBtn ml-2" id="save-btn" type="submit">
               <img height="18" src="assets/icons/content-save.svg">
-              Submit
+              {{ isSubmissionEdit ? 'Save changes' : 'Submit' }}
             </button>
           </div>
         </div>

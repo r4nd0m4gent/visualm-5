@@ -40,6 +40,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
   public canReport = false;
   public isSubmissionPreview = false;
   public adminPanelToken: string;
+  public submissionId: string;
   loadingDone: boolean = false;
   public reportMessage: string;
   ingredientArray: MaterialIngredient[] = [];
@@ -82,6 +83,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
       if (params.token && params.submission_id) {
         this.isSubmissionPreview = true;
         this.adminPanelToken = params.token;
+        this.submissionId = params.submission_id;
         this.materialService.getPendingSubmission(params.token, params.submission_id).subscribe(material => {
           this.material = Material.trueCopy(material);
           this.user = this.material.getUser() ? User.trueCopy(this.material.getUser()) : null;
