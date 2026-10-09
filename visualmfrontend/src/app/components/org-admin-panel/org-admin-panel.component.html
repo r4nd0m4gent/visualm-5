@@ -31,7 +31,7 @@
           <mat-table #sortPending="matSort" [dataSource]="pendingDataSource" matSort>
             <ng-container matColumnDef="sequenceNumber">
               <mat-header-cell *matHeaderCellDef mat-sort-header>ID</mat-header-cell>
-              <mat-cell *matCellDef="let row">#{{ row.sequenceNumber }}</mat-cell>
+              <mat-cell *matCellDef="let row">{{ isSubmission(row) ? 'New' : '#' + row.sequenceNumber }}</mat-cell>
             </ng-container>
             <ng-container matColumnDef="name">
               <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
@@ -54,9 +54,11 @@
             <ng-container matColumnDef="action">
               <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
               <mat-cell *matCellDef="let element">
-                <a mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
-                  <img src="assets/icons/eye.svg" height="24">
-                </a> |
+                <ng-container *ngIf="!isSubmission(element)">
+                  <a mat-icon-button matTooltip="View label" routerLink="/material/{{ element.sequenceNumber }}">
+                    <img src="assets/icons/eye.svg" height="24">
+                  </a> |
+                </ng-container>
                 <a mat-icon-button matTooltip="Approve and publish" (click)="onApprove(element)" style="cursor: pointer;">
                   <img src="assets/icons/done.svg" height="24">
                 </a> |

@@ -158,11 +158,26 @@ export class OrgAdminPanelComponent implements OnInit {
     );
   }
 
+  // New submissions live in their own table until approved; older pending labels are regular materials
+  isSubmission(material: any): boolean {
+    return material && material.pendingSubmissionId != null;
+  }
+
+  private pendingActionUrl(material: any, action: 'approve' | 'reject'): string {
+    return this.isSubmission(material)
+      ? `${this.baseUrl}/${this.token}/submissions/${material.pendingSubmissionId}/${action}`
+      : `${this.baseUrl}/${this.token}/${action}/${material.getSequenceNumber()}`;
+  }
+
+  private removeFromPending(material: Material): void {
+    this.pendingMaterials = this.pendingMaterials.filter(m => m !== material);
+    this.pendingDataSource.data = this.pendingMaterials;
+  }
+
   onApprove(material: Material): void {
-    this.http.put(`${this.baseUrl}/${this.token}/approve/${material.getSequenceNumber()}`, {}).subscribe(
+    this.http.put(this.pendingActionUrl(material, 'approve'), {}).subscribe(
       () => {
-        this.pendingMaterials = this.pendingMaterials.filter(m => m.getSequenceNumber() !== material.getSequenceNumber());
-        this.pendingDataSource.data = this.pendingMaterials;
+        this.removeFromPending(material);
         this.loadMaterials();
         this.snackBar.open('Label approved and published!', 'Close', {duration: 3000});
       },
@@ -171,12 +186,12 @@ export class OrgAdminPanelComponent implements OnInit {
   }
 
   onReject(material: Material): void {
-    this.http.put(`${this.baseUrl}/${this.token}/reject/${material.getSequenceNumber()}`, {}).subscribe(
+    const message = this.isSubmission(material) ? 'Submission rejected.' : 'Label rejected and returned to draft.';
+    this.http.put(this.pendingActionUrl(material, 'reject'), {}).subscribe(
       () => {
-        this.pendingMaterials = this.pendingMaterials.filter(m => m.getSequenceNumber() !== material.getSequenceNumber());
-        this.pendingDataSource.data = this.pendingMaterials;
+        this.removeFromPending(material);
         this.loadMaterials();
-        this.snackBar.open('Label rejected and returned to draft.', 'Close', {duration: 3000});
+        this.snackBar.open(message, 'Close', {duration: 3000});
       },
       () => { this.snackBar.open('Failed to reject label.', 'Close', {duration: 3000}); }
     );

@@ -1,5 +1,7 @@
 package visualmserver.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +13,7 @@ import visualmserver.exceptions.ResourceNotFoundException;
 import visualmserver.models.LabelTemplate;
 import visualmserver.models.Material;
 import visualmserver.models.OrgAdmin;
+import visualmserver.models.PendingSubmission;
 import visualmserver.models.Report;
 import visualmserver.models.SaveStatus;
 import visualmserver.models.User;
@@ -19,10 +22,13 @@ import visualmserver.repositories.MaterialsRepository;
 import visualmserver.repositories.OrgAdminRepository;
 import visualmserver.repositories.ReportRepository;
 import visualmserver.repositories.UserRepository;
+import visualmserver.services.MaterialService;
+import visualmserver.services.PendingSubmissionService;
 import visualmserver.util.FileUploadHandler;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +52,15 @@ public class OrgAdminController {
 
     @Autowired
     private LabelTemplateRepository labelTemplateRepository;
+
+    @Autowired
+    private PendingSubmissionService pendingSubmissionService;
+
+    @Autowired
+    private MaterialService materialService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${frontend.url:}")
     private String frontendUrl;
@@ -122,16 +137,52 @@ public class OrgAdminController {
 
     /**
      * API: Get pending materials via org-admin token (no JWT required).
+     * Returns new submissions (pending_submission table, marked with "pendingSubmissionId")
+     * followed by legacy materials that were stored with status PENDING_APPROVAL.
      */
     @GetMapping("/api/{token}/pending")
-    public ResponseEntity<List<Material>> getPendingMaterials(@PathVariable String token) throws IOException {
+    public ResponseEntity<List<Map<String, Object>>> getPendingMaterials(@PathVariable String token) throws IOException {
         OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
         if (admin == null) {
             return ResponseEntity.status(403).build();
         }
 
-        List<Material> materials = materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL);
-        return ResponseEntity.ok(materials);
+        List<Map<String, Object>> pending = new ArrayList<>();
+        for (PendingSubmission submission : pendingSubmissionService.findAll()) {
+            Map<String, Object> row = objectMapper.convertValue(pendingSubmissionService.toMaterial(submission),
+                    new TypeReference<Map<String, Object>>() {});
+            row.put("pendingSubmissionId", submission.getId());
+            pending.add(row);
+        }
+        for (Material material : materialsRepository.getMaterialsBySaveStatus(SaveStatus.PENDING_APPROVAL)) {
+            pending.add(objectMapper.convertValue(material, new TypeReference<Map<String, Object>>() {}));
+        }
+        return ResponseEntity.ok(pending);
+    }
+
+    /**
+     * API: Approve a new submission (pending_submission table) and publish it as a label.
+     */
+    @PutMapping("/api/{token}/submissions/{id}/approve")
+    public ResponseEntity<Material> approveSubmission(@PathVariable String token, @PathVariable Long id) throws IOException {
+        OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
+        if (admin == null) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(pendingSubmissionService.approve(id));
+    }
+
+    /**
+     * API: Reject (discard) a new submission.
+     */
+    @PutMapping("/api/{token}/submissions/{id}/reject")
+    public ResponseEntity<Void> rejectSubmission(@PathVariable String token, @PathVariable Long id) {
+        OrgAdmin admin = orgAdminRepository.findByAccessToken(token);
+        if (admin == null) {
+            return ResponseEntity.status(403).build();
+        }
+        pendingSubmissionService.reject(id);
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -153,13 +204,7 @@ public class OrgAdminController {
             throw new PreConditionException("Material is not pending approval.");
         }
 
-        List<Material> publishedMaterials = materialsRepository.getMaterialsBySaveStatus(SaveStatus.PUBLISHED);
-        long maxPublished = publishedMaterials.stream()
-                .filter(m -> m.getSequenceNumberPublished() != null)
-                .mapToLong(Material::getSequenceNumberPublished)
-                .max()
-                .orElse(0);
-        material.setSequenceNumberPublished(maxPublished + 1);
+        material.setSequenceNumberPublished(materialService.nextPublishedSequenceNumber());
         material.setSaveStatus(SaveStatus.PUBLISHED);
 
         Material savedMaterial = materialsRepository.save(material);
