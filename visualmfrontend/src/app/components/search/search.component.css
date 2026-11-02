@@ -248,3 +248,17 @@ hr {
   padding-top: 25px;
 }
 
+.materialDate {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+}
+.sortLabel {
+  font-size: 14px;
+}
+.sortSelect {
+  width: auto;
+  border-radius: 50px;
+  border: 0;
+  box-shadow: 0 0.5rem 20px rgba(0, 0, 0, 0.1);
+}

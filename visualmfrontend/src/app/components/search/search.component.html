@@ -28,6 +28,18 @@
 
 
   <div style="text-align: center;"><img *ngIf="!loadingDone" src="assets/icons/loadingIcon.svg" alt="Loading"></div>
+  <div class="row mt-3" *ngIf="loadingDone && allMaterials.length > 0">
+    <div class="col-md-12 d-flex justify-content-end align-items-center">
+      <label for="archiveSort" class="mb-0 mr-2 sortLabel">Sort by</label>
+      <select id="archiveSort" class="custom-select sortSelect" [(ngModel)]="sortOption" (ngModelChange)="onSortChange()">
+        <option value="relevance" *ngIf="searchQuery">Best match</option>
+        <option value="newest">Date listed (newest first)</option>
+        <option value="oldest">Date listed (oldest first)</option>
+        <option value="az">Name (A-Z)</option>
+        <option value="za">Name (Z-A)</option>
+      </select>
+    </div>
+  </div>
   <div class="row mt-2" *ngIf="loadingDone">
     <h1 class="noresults" *ngIf="matchingMaterials.length == 0">No search results</h1>
     <div class="col-md-5 col-lg-3 mt-2 cardDiv" *ngFor="let material of matchingMaterials" >
@@ -48,6 +60,7 @@
             </span>
             <hr>
             <small class="materialBy">Made by: {{ makerName(material) }}</small>
+            <small class="materialDate" *ngIf="material.getCreationDate()">Listed: {{ material.getCreationDate() | date:'dd-MM-yyyy' }}</small>
           </div>
         </div>
 
@@ -63,6 +76,7 @@
               <a *ngIf="material.user" routerLink="/user/{{material.user.id}}">{{ makerName(material) }}</a>
               <ng-container *ngIf="!material.user">{{ makerName(material) }}</ng-container>
             </small>
+            <small class="materialDate" *ngIf="material.getCreationDate()">Listed: {{ material.getCreationDate() | date:'dd-MM-yyyy' }}</small>
           </div>
         </div>
       </div>

@@ -66,14 +66,3 @@ hr {
   flex: 1 !important;
   height: auto;
 }
-.materialDate {
-  display: block;
-  font-size: 12px;
-  color: #6c757d;
-}
-.sortLabel {
-  font-size: 14px;
-}
-.sortSelect {
-  width: auto;
-}

@@ -11,6 +11,8 @@ import {User} from '../../models/user';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
 
+export type ArchiveSortOption = 'relevance' | 'newest' | 'oldest' | 'az' | 'za';
+
 // One searchable group of a label, e.g. its title or its ingredients, and how much a hit in it counts
 interface SearchField {
   enabled: boolean;
@@ -35,7 +37,10 @@ export class SearchComponent implements OnInit, OnDestroy {
   public typeSelected: boolean = true;
   public otherSelected: boolean = true;
   public materialTag = MaterialTag;
+  public sortOption: ArchiveSortOption = 'newest';
   loadingDone: boolean = false;
+  // Once the visitor picks a sort themselves, searching no longer switches it to 'relevance'
+  private sortChosen: boolean = false;
   searchQuerySubscription: Subscription;
 
   constructor(private materialService: MaterialsService, private activatedRoute: ActivatedRoute, private router: Router) {
@@ -59,7 +64,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.allMaterials = (materials || [])
         .map(material => Object.assign(new Material(), material))
         .filter(material => material.getSaveStatus() === SaveStatus.PUBLISHED);
-      this.matchingMaterials = this.allMaterials;
+      this.matchingMaterials = this.sortMaterials(this.allMaterials);
       this.loadingDone = true;
 
       this.searchQuerySubscription = this.activatedRoute.queryParams.subscribe(value => {
@@ -93,13 +98,26 @@ export class SearchComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  public onSortChange(): void {
+    this.sortChosen = true;
+    this.runSearch();
+  }
+
   // Re-run the current search, e.g. after a field checkbox changed
   public runSearch(): void {
     const tokens = this.normalize(this.searchQuery).split(' ').filter(token => token.length > 0);
 
     if (tokens.length === 0) {
-      this.matchingMaterials = this.allMaterials;
+      if (this.sortOption === 'relevance') {
+        this.sortOption = 'newest';
+        this.sortChosen = false;
+      }
+      this.matchingMaterials = this.sortMaterials(this.allMaterials);
       return;
+    }
+
+    if (!this.sortChosen) {
+      this.sortOption = 'relevance';
     }
 
     const scored: { material: Material, score: number }[] = [];
@@ -123,9 +141,52 @@ export class SearchComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.matchingMaterials = scored
-      .sort((a, b) => b.score - a.score)
-      .map(entry => entry.material);
+    const scores = new Map<Material, number>();
+    scored.forEach(entry => scores.set(entry.material, entry.score));
+    this.matchingMaterials = this.sortMaterials(scored.map(entry => entry.material), scores);
+  }
+
+  // Labels with an image always come first; the chosen sort applies within each group
+  private sortMaterials(materials: Material[], scores?: Map<Material, number>): Material[] {
+    return [...materials].sort((a, b) => {
+      const imageDiff = Number(this.hasImage(b)) - Number(this.hasImage(a));
+      if (imageDiff !== 0) {
+        return imageDiff;
+      }
+
+      switch (this.sortOption) {
+        case 'relevance':
+          return scores ? (scores.get(b) || 0) - (scores.get(a) || 0) : this.compareDates(b, a);
+        case 'az':
+          return this.compareNames(a, b);
+        case 'za':
+          return this.compareNames(b, a);
+        case 'oldest':
+          return this.compareDates(a, b);
+        default:
+          return this.compareDates(b, a);
+      }
+    });
+  }
+
+  private hasImage(material: Material): boolean {
+    return !!material.getOverviewURL();
+  }
+
+  private compareNames(a: Material, b: Material): number {
+    return (a.getName() || '').localeCompare(b.getName() || '', undefined, {sensitivity: 'base', numeric: true});
+  }
+
+  private compareDates(a: Material, b: Material): number {
+    const dateDiff = this.getTime(a) - this.getTime(b);
+    // Many labels share a creation day, so fall back to the order they were added in
+    return dateDiff !== 0 ? dateDiff : (a.getSequenceNumber() || 0) - (b.getSequenceNumber() || 0);
+  }
+
+  private getTime(material: Material): number {
+    const date = material.getCreationDate();
+    const time = date ? new Date(date).getTime() : NaN;
+    return isNaN(time) ? 0 : time;
   }
 
   private scoreToken(token: string, fields: SearchField[]): number {
