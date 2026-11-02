@@ -12,6 +12,19 @@
     </div>
   </div>
 
+  <div class="row mt-2" *ngIf="loadingDone && materials.length > 0">
+    <div class="col-md-12 d-flex justify-content-end align-items-center">
+      <label for="homeSort" class="mb-0 mr-2 sortLabel">Sort by</label>
+      <select id="homeSort" class="custom-select custom-select-sm sortSelect"
+              [(ngModel)]="sortOption" (ngModelChange)="sortMaterials()">
+        <option value="newest">Date listed (newest first)</option>
+        <option value="oldest">Date listed (oldest first)</option>
+        <option value="az">Name (A-Z)</option>
+        <option value="za">Name (Z-A)</option>
+      </select>
+    </div>
+  </div>
+
   <div class="row mt-2">
     <div class="col-md-3 mt-2 cardDiv" *ngFor="let material of materials" >
         <div class="card card-flip rounded shadow material-link" routerLink="/material/{{ material.getSequenceNumber() }}">
@@ -31,6 +44,7 @@
             </span>
               <hr>
               <small class="materialBy">Made by:{{ material.user.firstname + " " + material.user.lastname }}</small>
+              <small class="materialDate" *ngIf="material.getCreationDate()">Listed: {{ material.getCreationDate() | date:'dd-MM-yyyy' }}</small>
             </div>
           </div>
 
@@ -43,6 +57,7 @@
               <a class="info">Click for more info...</a>
               <hr>
               <small class="materialBy">Made by: <a routerLink="/user/{{material.user.id}}">{{ material.user.firstname + " " + material.user.lastname }}</a></small>
+              <small class="materialDate" *ngIf="material.getCreationDate()">Listed: {{ material.getCreationDate() | date:'dd-MM-yyyy' }}</small>
             </div>
           </div>
         </div>
